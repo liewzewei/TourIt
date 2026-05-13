@@ -1,15 +1,39 @@
 import { NextResponse } from "next/server";
 import createClient from "@/lib/supabase/server";
 
-function getOrigin(request: Request): string {
-  const forwardedHost = request.headers.get("x-forwarded-host");
-  const forwardedProto = request.headers.get("x-forwarded-proto") ?? "https";
+function normalizeHeaderValue(value: string | null): string | undefined {
+  return value?.split(",")[0]?.trim() || undefined;
+}
 
-  if (forwardedHost) {
-    return `${forwardedProto}://${forwardedHost}`;
+function isLocalHost(host: string): boolean {
+  return host.startsWith("localhost") || host.startsWith("127.0.0.1");
+}
+
+function normalizeOrigin(origin: string): string {
+  return origin.replace(/\/$/, "");
+}
+
+function getOrigin(request: Request): string {
+  const host =
+    normalizeHeaderValue(request.headers.get("x-forwarded-host")) ??
+    normalizeHeaderValue(request.headers.get("host"));
+  const proto = normalizeHeaderValue(request.headers.get("x-forwarded-proto"));
+  const envOrigin =
+    process.env.NEXT_PUBLIC_SITE_URL ??
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined);
+
+  if (host && !isLocalHost(host)) {
+    return `${proto ?? "https"}://${host}`;
   }
 
-  // Fallback for local development
+  if (envOrigin) {
+    return normalizeOrigin(envOrigin);
+  }
+
+  if (host) {
+    return `${proto ?? "http"}://${host}`;
+  }
+
   return new URL(request.url).origin;
 }
 
