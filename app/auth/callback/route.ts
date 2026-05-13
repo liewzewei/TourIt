@@ -12,6 +12,7 @@ function getHostname(host: string): string {
     if (end !== -1) {
       return trimmed.slice(1, end);
     }
+    return trimmed.slice(1);
   }
   return trimmed.split(":")[0];
 }
@@ -27,7 +28,7 @@ function isLocalHost(host: string): boolean {
 }
 
 function removeTrailingSlash(origin: string): string {
-  return origin.replace(/\/$/, "");
+  return origin.replace(/\/+$/, "");
 }
 
 function getOrigin(request: Request): string {
@@ -35,12 +36,20 @@ function getOrigin(request: Request): string {
     normalizeHeaderValue(request.headers.get("x-forwarded-host")) ??
     normalizeHeaderValue(request.headers.get("host"));
   const proto = normalizeHeaderValue(request.headers.get("x-forwarded-proto"));
-  const envOrigin =
+  const rawEnvOrigin =
     process.env.NEXT_PUBLIC_SITE_URL ??
     (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined);
+  const envOrigin = rawEnvOrigin
+    ? rawEnvOrigin.includes("://")
+      ? rawEnvOrigin
+      : `https://${rawEnvOrigin}`
+    : undefined;
+  const envProtocol = envOrigin ? new URL(envOrigin).protocol.slice(0, -1) : undefined;
+  const resolvedProto =
+    proto ?? envProtocol ?? (host && isLocalHost(host) ? "http" : "https");
 
   if (host && !isLocalHost(host)) {
-    return `${proto ?? "https"}://${host}`;
+    return `${resolvedProto}://${host}`;
   }
 
   if (envOrigin) {
@@ -48,7 +57,7 @@ function getOrigin(request: Request): string {
   }
 
   if (host) {
-    return `${proto ?? "http"}://${host}`;
+    return `${resolvedProto}://${host}`;
   }
 
   return new URL(request.url).origin;
