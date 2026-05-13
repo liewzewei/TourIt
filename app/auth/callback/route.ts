@@ -28,7 +28,7 @@ function isLocalHost(host: string): boolean {
 }
 
 function removeTrailingSlash(origin: string): string {
-  return origin.replace(/\/+$/, "");
+  return origin.replace(/\/$/, "");
 }
 
 function getOrigin(request: Request): string {
@@ -44,7 +44,7 @@ function getOrigin(request: Request): string {
       ? rawEnvOrigin
       : `https://${rawEnvOrigin}`
     : undefined;
-  const envProtocol = envOrigin ? new URL(envOrigin).protocol.slice(0, -1) : undefined;
+  const envProtocol = envOrigin ? envOrigin.split("://")[0] : undefined;
   const resolvedProto =
     proto ?? envProtocol ?? (host && isLocalHost(host) ? "http" : "https");
 
