@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import createClient from "@/lib/supabase/server";
 
-function normalizeHeaderValue(value: string | null): string | undefined {
+function getFirstHeaderValue(value: string | null): string | undefined {
   return value?.split(",")[0]?.trim() || undefined;
 }
 
-function getHostname(host: string): string {
+function extractHostname(host: string): string {
   const trimmed = host.trim().toLowerCase();
   if (trimmed.startsWith("[")) {
     const end = trimmed.indexOf("]");
@@ -18,7 +18,7 @@ function getHostname(host: string): string {
 }
 
 function isLocalHost(host: string): boolean {
-  const hostname = getHostname(host);
+  const hostname = extractHostname(host);
   return (
     hostname === "localhost" ||
     hostname === "127.0.0.1" ||
@@ -31,11 +31,22 @@ function removeTrailingSlash(origin: string): string {
   return origin.replace(/\/$/, "");
 }
 
+function getEnvProtocol(envOrigin?: string): string | undefined {
+  if (!envOrigin) {
+    return undefined;
+  }
+  try {
+    return new URL(envOrigin).protocol.replace(":", "");
+  } catch {
+    return undefined;
+  }
+}
+
 function getOrigin(request: Request): string {
   const host =
-    normalizeHeaderValue(request.headers.get("x-forwarded-host")) ??
-    normalizeHeaderValue(request.headers.get("host"));
-  const proto = normalizeHeaderValue(request.headers.get("x-forwarded-proto"));
+    getFirstHeaderValue(request.headers.get("x-forwarded-host")) ??
+    getFirstHeaderValue(request.headers.get("host"));
+  const proto = getFirstHeaderValue(request.headers.get("x-forwarded-proto"));
   const rawEnvOrigin =
     process.env.NEXT_PUBLIC_SITE_URL ??
     (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined);
@@ -44,7 +55,7 @@ function getOrigin(request: Request): string {
       ? rawEnvOrigin
       : `https://${rawEnvOrigin}`
     : undefined;
-  const envProtocol = envOrigin ? envOrigin.split("://")[0] : undefined;
+  const envProtocol = getEnvProtocol(envOrigin);
   const resolvedProto =
     proto ?? envProtocol ?? (host && isLocalHost(host) ? "http" : "https");
 
