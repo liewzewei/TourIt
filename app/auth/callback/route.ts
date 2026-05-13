@@ -27,10 +27,6 @@ function isLocalHost(host: string): boolean {
   );
 }
 
-function removeTrailingSlash(origin: string): string {
-  return origin.replace(/\/$/, "");
-}
-
 function getEnvProtocol(envOrigin?: string): string | undefined {
   if (!envOrigin) {
     return undefined;
@@ -47,8 +43,9 @@ function getOrigin(request: Request): string {
     getFirstHeaderValue(request.headers.get("x-forwarded-host")) ??
     getFirstHeaderValue(request.headers.get("host"));
   const proto = getFirstHeaderValue(request.headers.get("x-forwarded-proto"));
+  const explicitSiteUrl = process.env.NEXT_PUBLIC_SITE_URL;
   const rawEnvOrigin =
-    process.env.NEXT_PUBLIC_SITE_URL ??
+    explicitSiteUrl ??
     (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined);
   const envOrigin = rawEnvOrigin
     ? rawEnvOrigin.includes("://")
@@ -59,12 +56,16 @@ function getOrigin(request: Request): string {
   const resolvedProto =
     proto ?? envProtocol ?? (host && isLocalHost(host) ? "http" : "https");
 
+  if (explicitSiteUrl && envOrigin) {
+    return envOrigin.replace(/\/$/, "");
+  }
+
   if (host && !isLocalHost(host)) {
     return `${resolvedProto}://${host}`;
   }
 
   if (envOrigin) {
-    return removeTrailingSlash(envOrigin);
+    return envOrigin.replace(/\/$/, "");
   }
 
   if (host) {
