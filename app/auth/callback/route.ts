@@ -5,11 +5,28 @@ function normalizeHeaderValue(value: string | null): string | undefined {
   return value?.split(",")[0]?.trim() || undefined;
 }
 
-function isLocalHost(host: string): boolean {
-  return host.startsWith("localhost") || host.startsWith("127.0.0.1");
+function getHostname(host: string): string {
+  const trimmed = host.trim().toLowerCase();
+  if (trimmed.startsWith("[")) {
+    const end = trimmed.indexOf("]");
+    if (end !== -1) {
+      return trimmed.slice(1, end);
+    }
+  }
+  return trimmed.split(":")[0];
 }
 
-function normalizeOrigin(origin: string): string {
+function isLocalHost(host: string): boolean {
+  const hostname = getHostname(host);
+  return (
+    hostname === "localhost" ||
+    hostname === "127.0.0.1" ||
+    hostname === "0.0.0.0" ||
+    hostname === "::1"
+  );
+}
+
+function removeTrailingSlash(origin: string): string {
   return origin.replace(/\/$/, "");
 }
 
@@ -27,7 +44,7 @@ function getOrigin(request: Request): string {
   }
 
   if (envOrigin) {
-    return normalizeOrigin(envOrigin);
+    return removeTrailingSlash(envOrigin);
   }
 
   if (host) {
