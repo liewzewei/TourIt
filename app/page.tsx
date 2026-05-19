@@ -5,6 +5,9 @@ export default function HomePage() {
       <p className="mt-2 text-muted-foreground">
         This is the main landing page of our application.
       </p>
+      <p className="mt-2 text-muted-foreground">
+        keyi .
+      </p>
     </section>
   );
 }
