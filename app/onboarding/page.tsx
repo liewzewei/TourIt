@@ -23,7 +23,7 @@ export default function OnboardingPage() {
             <div className="flex justify-center gap-4">
                 {/* 2. Bind the argument ('tourist') to the function */}
                 <form action={updateUserRole.bind(null, 'tourist')}>
-                  <Button type="submit" variant="outline">
+                  <Button type="submit">
                     I am a Tourist
                   </Button>
                 </form>
