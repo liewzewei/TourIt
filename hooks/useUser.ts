@@ -9,6 +9,7 @@ export default function useUser() {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<AuthError | null>(null);
+  const [profile, setProfile] = useState<any | null>(null);
   const supabase = createClient();
 
   useEffect(() => {
@@ -25,6 +26,14 @@ export default function useUser() {
         if (session) {
           setSession(session);
           setUser(session.user);
+          // Fetch the user's profile from the database
+          const { data: profileData, error: profileError } = await supabase
+            .from("profiles")
+            .select("*")
+            .eq("id", session.user.id)
+            .single();
+          if (profileError) throw profileError;
+          setProfile(profileData);
         }
       } catch (error) {
         setError(error as AuthError);
@@ -35,5 +44,5 @@ export default function useUser() {
     fetchUser();
   }, [supabase]);
 
-  return { loading, error, session, user };
+  return { loading, error, session, user, profile };
 }
