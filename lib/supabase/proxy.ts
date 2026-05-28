@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
-import { LOGIN_PATH } from '@/constants/common'; 
+import { LOGIN_PATH, ROLE_HOME_PATH } from '@/constants/common'; 
 
 export default async function updateSession(request: NextRequest) {
     let supabaseResponse = NextResponse.next({ request });
@@ -66,9 +66,16 @@ export default async function updateSession(request: NextRequest) {
     // Prevent authenticated users with roles from accessing the login page and onboarding page
     if (user && role !== null && (path.startsWith(LOGIN_PATH) || path.startsWith("/onboarding"))) {
         const url = request.nextUrl.clone();
-        url.pathname = "/";
+        url.pathname = ROLE_HOME_PATH[role] || "/"; // Redirect to role-specific home or root if role is unrecognized
         return NextResponse.redirect(url);
     }
-    
+
+    // Redirect authenticated users to their respective dashboards based on their role
+    if (user && role !== null && !path.startsWith(ROLE_HOME_PATH[role]!) && !path.startsWith("/auth")) {
+        const url = request.nextUrl.clone();
+        url.pathname = ROLE_HOME_PATH[role] || "/";
+        return NextResponse.redirect(url);
+    }
+
     return supabaseResponse;
 }
