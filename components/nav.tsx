@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/sheet";
 
 import AuthButton from "@/components/auth-buttons";
+import UserAvatar from "@/components/user-avatar";
 
 interface MenuItem {
   title: string;
@@ -57,7 +58,7 @@ export default function Nav() {
             </div>
           </div>
 
-          <AuthButton />
+          <UserAvatar />
         </nav>
 
         {/* Mobile Menu */}

@@ -71,7 +71,7 @@ export default async function updateSession(request: NextRequest) {
     }
 
     // Redirect authenticated users to their respective dashboards based on their role
-    if (user && role !== null && !path.startsWith(ROLE_HOME_PATH[role]!) && !path.startsWith("/auth")) {
+    if (user && role !== null && !path.startsWith(ROLE_HOME_PATH[role]!) && !path.startsWith("/auth") && !path.startsWith("/settings")) {
         const url = request.nextUrl.clone();
         url.pathname = ROLE_HOME_PATH[role] || "/";
         return NextResponse.redirect(url);
