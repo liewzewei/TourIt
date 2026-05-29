@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 
 import { Menu, Sparkle } from "lucide-react";
@@ -20,28 +22,30 @@ import {
 import AuthButton from "@/components/auth-buttons";
 import UserAvatar from "@/components/user-avatar";
 
-interface MenuItem {
-  title: string;
-  url: string;
-}
+import useUser from "@/hooks/useUser";
+import { ROLE_HOME_PATH } from "@/constants/common";
+import { MenuItem } from "@/types/index";
 
-const NAV_MENU_ITEMS: MenuItem[] = [
-  { title: "Home", url: "/" },
-  {
-    title: "Client",
-    url: "/client",
-  },
-  {
-    title: "Server",
-    url: "/server",
-  },
-  {
-    title: "Profile",
-    url: "/profile",
-  },
-];
+const ROLE_NAV_MENU_ITEMS: Record<string, MenuItem[]> = {
+    tourist: [
+        { title: "Home", url: ROLE_HOME_PATH.tourist },
+        { title: "Itineraries", url: "/tourist/itineraries" },
+    ],
+    business_owner: [
+        { title: "Home", url: ROLE_HOME_PATH.business_owner },
+        { title: "Listings", url: "/business-owner/listings" },
+    ],
+};
 
 export default function Nav() {
+  
+  // useUser gets the data from the UserContext, which is populated in the root layout
+  const { profile } = useUser();
+
+  const NAV_MENU_ITEMS = profile?.role 
+    ? ROLE_NAV_MENU_ITEMS[profile.role] || [] 
+    : [];
+
   return (
     <section className="p-4 border-b">
       <div className="container mx-auto">
