@@ -2,6 +2,8 @@
 
 import createClient from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
+import { ROLE_HOME_PATH } from "@/constants/common";
 
 export async function updateUserRole(role: 'business_owner' | 'tourist') {
   // 1. Initialize the secure server-side database client
@@ -25,6 +27,9 @@ export async function updateUserRole(role: 'business_owner' | 'tourist') {
     throw new Error("Failed to update role");
   }
 
-  // 4. Redirect them to the home page once successful!
-  redirect("/");
+  // 4. Force Next.js to re-fetch the root layout so the Nav Bar gets the new profile data
+  revalidatePath("/", "layout");
+
+  // 5. Redirect them directly to their specific home page to prevent Middleware proxy conflicts
+  redirect(ROLE_HOME_PATH[role] || "/");
 }
