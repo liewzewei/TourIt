@@ -107,6 +107,30 @@ export default function AddToItineraryButton({ listingId }: { listingId: string 
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
 
               <div>
+                <label className="block text-sm font-medium mb-1">Select Itinerary</label>
+                <select
+                  value={selectedItineraryId}
+                  onChange={(e) => setSelectedItineraryId(e.target.value)}
+                  className="w-full border rounded p-2 bg-white"
+                >
+                  {/* Default placeholder option */}
+                  <option value="" disabled>Select one...</option>
+                  
+                  {/* If they have NO itineraries */}
+                  {itineraries.length === 0 && (
+                    <option value="" disabled>No itinerary is created yet</option>
+                  )}
+
+                  {/* List out their itineraries if they have them */}
+                  {itineraries.map((itinerary) => (
+                    <option key={itinerary.id} value={itinerary.id}>
+                      {itinerary.itinerary_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+              <div>
                 <label className="block text-sm font-medium mb-1">Visit Date</label>
                 <input 
                   type="date" 

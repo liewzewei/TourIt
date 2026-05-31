@@ -30,7 +30,7 @@ export default async function TouristHomePage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {listings?.map((listing) => (
           <Link 
-            href={`/tourist/listings/${listing.id}`} 
+            href={`/tourist/explore/listings/${listing.id}`} 
             key={listing.id}
             className="border rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col h-full cursor-pointer"
           > 
