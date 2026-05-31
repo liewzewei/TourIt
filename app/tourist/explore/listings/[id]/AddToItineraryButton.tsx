@@ -1,12 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { createClient } from "@supabase/supabase-js";
-
-// Initialize client-side Supabase
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabase = createClient(supabaseUrl, supabaseKey);
+import createClient from "@/lib/supabase/client";
+import { useRouter } from "next/navigation";
 
 export default function AddToItineraryButton({ listingId }: { listingId: string }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -17,6 +13,8 @@ export default function AddToItineraryButton({ listingId }: { listingId: string 
   const [startDate, setStartDate] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
+  const supabase = createClient();
+  const router = useRouter();
 
   // Fetch the user's existing itineraries when the modal opens
   useEffect(() => {
@@ -28,7 +26,8 @@ export default function AddToItineraryButton({ listingId }: { listingId: string 
         const { data } = await supabase
           .from("itineraries")
           .select("id, itinerary_name")
-          .eq("profile_id", user.id);
+          .eq("profile_id", user.id)
+          .order("created_at", { ascending: false });
         
         if (data) {
           setItineraries(data);
@@ -43,7 +42,6 @@ export default function AddToItineraryButton({ listingId }: { listingId: string 
     e.preventDefault();
     
     let targetItineraryId = selectedItineraryId;
-
     // 1. If no itinerary exists, automatically create a default one!
     if (!targetItineraryId) {
       const { data: { user } } = await supabase.auth.getUser();
@@ -68,6 +66,28 @@ export default function AddToItineraryButton({ listingId }: { listingId: string 
       // Update state so it uses this ID for any future clicks without recreating
       setSelectedItineraryId(newItinerary.id); 
     }
+    
+    // Check for overlapping timings before insertion
+    if (startDate && startTime && endTime) {
+      const { data: existingActivities } = await supabase
+        .from("itinerary_listings")
+        .select("start_time, end_time")
+        .eq("itinerary_id", targetItineraryId)
+        .eq("start_date", startDate);
+
+      if (existingActivities && existingActivities.length > 0) {
+        const hasOverlap = existingActivities.some(activity => {
+          if (!activity.start_time || !activity.end_time) return false;
+          // String comparison works perfectly for "HH:MM" format
+          return (startTime < activity.end_time && endTime > activity.start_time);
+        });
+
+        if (hasOverlap) {
+          alert("This timing overlaps with an existing activity in your itinerary!");
+          return; // Stop the submission
+        }
+      }
+    }
 
     // 2. Insert the schedule using the valid itinerary ID
     const { error } = await supabase
@@ -86,6 +106,7 @@ export default function AddToItineraryButton({ listingId }: { listingId: string 
     } else {
       alert("Successfully added!");
       setIsOpen(false);
+      router.refresh();
     }
   };
 
