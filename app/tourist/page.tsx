@@ -1,5 +1,7 @@
 import createClient from "@/lib/supabase/server";
 
+import Link from 'next/link';
+
 export default async function TouristHomePage() {
   const supabase = await createClient();
 
@@ -27,10 +29,11 @@ export default async function TouristHomePage() {
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {listings?.map((listing) => (
-          <div 
-            key={listing.id} 
-            className="border rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col"
-          >
+          <Link 
+            href={`/tourist/listings/${listing.id}`} 
+            key={listing.id}
+            className="border rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col h-full cursor-pointer"
+          > 
             <h2 className="text-xl font-semibold mb-2">
               {listing.listing_name}
             </h2>
@@ -67,7 +70,7 @@ export default async function TouristHomePage() {
                 </p>
               )}
             </div>
-          </div>
+          </Link>
         ))}
 
         {listings?.length === 0 && (
