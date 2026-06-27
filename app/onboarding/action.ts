@@ -19,7 +19,10 @@ export async function updateUserRole(role: 'business_owner' | 'tourist') {
   // 3. Update the profiles table
   const { error } = await supabase
     .from("profiles")
-    .update({ role: role })
+    .update({ 
+      role: role,
+      onboarding_completed: role === "business_owner" // Business owners are instantly done, tourists are not
+    })
     .eq("id", user.id);
 
   if (error) {
@@ -31,5 +34,11 @@ export async function updateUserRole(role: 'business_owner' | 'tourist') {
   revalidatePath("/", "layout");
 
   // 5. Redirect them directly to their specific home page to prevent Middleware proxy conflicts
-  redirect(ROLE_HOME_PATH[role] || "/");
+  if (role === "tourist") {
+    // First-time tourists go straight to the quiz
+    redirect("/tourist/quiz");
+  } else {
+    // First-time business owners go to their standard dashboard
+    redirect(ROLE_HOME_PATH[role] || "/");
+  }
 }
