@@ -34,16 +34,18 @@ export default async function updateSession(request: NextRequest) {
 
     //Initialise role as null
     let role = null;
+    let onboardingCompleted = false;
 
     //If user is authenticated, fetch their role
     if (user) {
         const { data: profile } = await supabase
             .from('profiles')
-            .select('role')
+            .select('role, onboarding_completed')
             .eq('id', user.id)
             .single(); //single() ensures we get one record, not an array
 
         role = profile?.role || null;
+        onboardingCompleted = profile?.onboarding_completed || false;
     }
 
     const path = request.nextUrl.pathname;
@@ -63,15 +65,25 @@ export default async function updateSession(request: NextRequest) {
         return NextResponse.redirect(url);
     }
 
-    // Prevent authenticated users with roles from accessing the login page and onboarding page
-    if (user && role !== null && (path.startsWith(LOGIN_PATH) || path.startsWith("/onboarding"))) {
+    // Prevent fully onboarded users from accessing login and onboarding pages
+    if (user && role !== null && onboardingCompleted && (path.startsWith(LOGIN_PATH) || path.startsWith("/onboarding"))) {
         const url = request.nextUrl.clone();
-        url.pathname = ROLE_HOME_PATH[role] || "/"; // Redirect to role-specific home or root if role is unrecognized
+        url.pathname = ROLE_HOME_PATH[role] || "/"; 
         return NextResponse.redirect(url);
     }
 
-    // Redirect authenticated users to their respective dashboards based on their role
-    if (user && role !== null && !path.startsWith(ROLE_HOME_PATH[role]!) && !path.startsWith("/auth") && !path.startsWith("/settings")) {
+    // Trap incomplete tourists in the quiz. If they try to go anywhere else, send them back.
+    if (user && role === "tourist" && !onboardingCompleted) {
+        if (!path.startsWith("/tourist/quiz") && !path.startsWith("/auth")) {
+            const url = request.nextUrl.clone();
+            url.pathname = "/tourist/quiz";
+            return NextResponse.redirect(url);
+        }
+        return supabaseResponse; // Let them access the quiz
+    }
+    
+    // Redirect fully onboarded users to their respective dashboards if they wander off
+    if (user && role !== null && onboardingCompleted && !path.startsWith(ROLE_HOME_PATH[role]!) && !path.startsWith("/auth") && !path.startsWith("/settings")) {
         const url = request.nextUrl.clone();
         url.pathname = ROLE_HOME_PATH[role] || "/";
         return NextResponse.redirect(url);
