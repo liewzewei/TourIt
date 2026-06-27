@@ -83,7 +83,7 @@ export default function ItinerariesPage() {
       {/* Header and Form Section */}
       <div className="flex flex-col items-center text-center">
         <h1 className="text-3xl font-bold text-neutral-900 mb-0">My Itineraries</h1>
-<p className="text-neutral-500 mb-12 mt-1">Plan, organize, and manage your upcoming adventures.</p>
+        <p className="text-neutral-500 mb-12 mt-1">Plan, organize, and manage your upcoming adventures.</p>
         
         <form onSubmit={handleCreateItinerary} className="flex gap-4 w-full md:w-1/3 min-w-[420px]">
           <input 
