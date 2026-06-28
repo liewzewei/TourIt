@@ -1,4 +1,4 @@
-﻿"use server";
+"use server";
 
 import { GoogleGenAI } from "@google/genai";
 import createClient from "@/lib/supabase/server";
