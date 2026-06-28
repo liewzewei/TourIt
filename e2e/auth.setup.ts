@@ -54,6 +54,28 @@ setup("authenticate", async ({ request }) => {
     .eq("profile_id", userId);
   expect(tagsError, tagsError?.message).toBeNull();
 
+  // Clear the test user's itineraries and their stops so the add-to-itinerary
+  // step starts from a clean slate (no duplicate-key or time-overlap rejections
+  // on reruns). Stops first — they reference itineraries.
+  const { data: itineraries } = await admin
+    .from("itineraries")
+    .select("id")
+    .eq("profile_id", userId);
+  const itineraryIds = (itineraries ?? []).map((row) => row.id as string);
+  if (itineraryIds.length > 0) {
+    const { error: stopsError } = await admin
+      .from("itinerary_listings")
+      .delete()
+      .in("itinerary_id", itineraryIds);
+    expect(stopsError, stopsError?.message).toBeNull();
+
+    const { error: itinError } = await admin
+      .from("itineraries")
+      .delete()
+      .eq("profile_id", userId);
+    expect(itinError, itinError?.message).toBeNull();
+  }
+
   // Sign in through the dev-only route; @supabase/ssr sets the session cookies
   // on the response, which the request context then serializes to storageState.
   const res = await request.post("/auth/test-login");
