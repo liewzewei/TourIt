@@ -6,15 +6,14 @@ import { redirect } from "next/navigation";
 import type { RecommendedListing } from "@/types/index";
 import Pagination from "./pagination";
 import FilterBar, { type Tag } from "./filter-bar";
+import {
+  firstValue,
+  parsePage,
+  parseTagIds,
+  parseTime,
+} from "@/lib/explore-params";
 
 const PAGE_SIZE = 15; // mirrors the recommend_listings default p_limit
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/;
-
-// searchParams values can be string | string[] | undefined; take the first.
-function firstValue(v: string | string[] | undefined): string | undefined {
-  return Array.isArray(v) ? v[0] : v;
-}
 
 export default async function ExplorePage({
   searchParams,
@@ -24,21 +23,12 @@ export default async function ExplorePage({
   const supabase = await createClient();
   const params = await searchParams;
 
-  // --- Page number: ignore arrays, non-numbers, and anything < 1 ---
-  const parsedPage = Number(firstValue(params.page));
-  const page =
-    Number.isFinite(parsedPage) && parsedPage >= 1 ? Math.floor(parsedPage) : 1;
-
-  // --- Filters: validate before they reach SQL casts (hand-typed URLs) ---
-  const rawTags = firstValue(params.tags);
-  const tagIds = rawTags ? rawTags.split(",").filter((t) => UUID_RE.test(t)) : [];
-
-  const rawOpenFrom = firstValue(params.open_from);
-  const openFrom = rawOpenFrom && TIME_RE.test(rawOpenFrom) ? rawOpenFrom : null;
-
-  const rawOpenUntil = firstValue(params.open_until);
-  const openUntil =
-    rawOpenUntil && TIME_RE.test(rawOpenUntil) ? rawOpenUntil : null;
+  // --- Page number, tag, and time filters: validated in @/lib/explore-params
+  // before they reach the RPC's SQL casts (URLs can be hand-typed). ---
+  const page = parsePage(firstValue(params.page));
+  const tagIds = parseTagIds(firstValue(params.tags));
+  const openFrom = parseTime(firstValue(params.open_from));
+  const openUntil = parseTime(firstValue(params.open_until));
 
   // --- Fetch the ranked page and the tag vocabulary in parallel ---
   const [rpcRes, tagsRes] = await Promise.all([
