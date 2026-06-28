@@ -1,13 +1,21 @@
 name: Deploy Supabase Migrations to Production
 
+# Runs only after the CI workflow completes successfully on main.
+# This guarantees migrations never deploy from broken code.
 on:
-  push:
+  workflow_run:
+    workflows: ["CI"]
+    types:
+      - completed
     branches:
-      - main # This will trigger the workflow whenever you push or merge into the main branch
+      - main
 
 jobs:
   deploy:
+    name: Deploy Migrations
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

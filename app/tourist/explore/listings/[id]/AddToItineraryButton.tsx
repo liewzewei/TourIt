@@ -4,9 +4,11 @@ import { useState, useEffect } from "react";
 import createClient from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 
+type ItineraryOption = { id: string; itinerary_name: string };
+
 export default function AddToItineraryButton({ listingId }: { listingId: string }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [itineraries, setItineraries] = useState<any[]>([]);
+  const [itineraries, setItineraries] = useState<ItineraryOption[]>([]);
   const [selectedItineraryId, setSelectedItineraryId] = useState("");
   
   // Form state
