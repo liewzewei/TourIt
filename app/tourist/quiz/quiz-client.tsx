@@ -34,8 +34,12 @@ export default function QuizClient({ tags, userId }: { tags: Tag[], userId: stri
 
   const handleNext = async () => {
     if (currentIndex + 1 >= tags.length) {
-      await markOnboardingComplete(userId); // Mark complete before redirecting
-      router.push("/tourist/explore");
+      try {
+        await markOnboardingComplete();
+        router.push("/tourist/explore");
+      } catch (err) {
+        console.error("Failed to complete onboarding:", err);
+      }
     } else {
       setCurrentIndex((prev) => prev + 1);
     }
