@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import createClient from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import { hasTimeOverlap } from "@/lib/itinerary-overlap";
 
 type ItineraryOption = { id: string; itinerary_name: string };
 
@@ -78,11 +79,7 @@ export default function AddToItineraryButton({ listingId }: { listingId: string 
         .eq("start_date", startDate);
 
       if (existingActivities && existingActivities.length > 0) {
-        const hasOverlap = existingActivities.some(activity => {
-          if (!activity.start_time || !activity.end_time) return false;
-          // String comparison works perfectly for "HH:MM" format
-          return (startTime < activity.end_time && endTime > activity.start_time);
-        });
+        const hasOverlap = hasTimeOverlap(existingActivities, startTime, endTime);
 
         if (hasOverlap) {
           alert("This timing overlaps with an existing activity in your itinerary!");
