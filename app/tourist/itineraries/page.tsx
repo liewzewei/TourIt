@@ -19,14 +19,9 @@ export default function ItinerariesPage() {
   const supabase = createClient();
   const router = useRouter();
 
-  useEffect(() => {
-    fetchItineraries();
-  }, []);
-
   const fetchItineraries = async () => {
-    setLoading(true);
     const { data: { user } } = await supabase.auth.getUser();
-    
+
     if (user) {
       const { data, error } = await supabase
         .from('itineraries')
@@ -40,6 +35,11 @@ export default function ItinerariesPage() {
     }
     setLoading(false);
   };
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchItineraries(); // setState calls inside are async (after await), not synchronous
+  }, []);
 
   const handleCreateItinerary = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -111,7 +111,7 @@ export default function ItinerariesPage() {
           </div>
         ) : itineraries.length === 0 ? (
           <div className="p-16 text-center border border-dashed border-neutral-300 rounded-lg">
-            <p className="text-neutral-500">You haven't created any itineraries yet.</p>
+            <p className="text-neutral-500">You have not created any itineraries yet.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-16">
