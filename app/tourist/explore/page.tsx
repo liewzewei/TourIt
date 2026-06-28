@@ -1,18 +1,32 @@
 import createClient from "@/lib/supabase/server";
 
-import Link from 'next/link';
+import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import type { RecommendedListing } from "@/types/index";
+import Pagination from "./pagination";
 
-export default async function ExplorePage() {
+const PAGE_SIZE = 15; // mirrors the recommend_listings default p_limit
+
+export default async function ExplorePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
   const supabase = await createClient();
+  const params = await searchParams;
 
-  // Personalized, ranked feed. The RPC scores every listing against the
-  // tourist's quiz tags and returns the top slice (newest-first if they have
-  // no tags yet). See supabase/migrations/..._recommend_listings_fn.sql.
+  // Parse ?page= defensively: ignore arrays, non-numbers, and anything < 1.
+  const rawPage = Array.isArray(params.page) ? params.page[0] : params.page;
+  const parsed = Number(rawPage);
+  const page = Number.isFinite(parsed) && parsed >= 1 ? Math.floor(parsed) : 1;
+
+  // Personalized, ranked feed. The RPC scores every listing against the tourist's
+  // quiz tags and returns one page of results (newest-first if they have no tags).
+  // See supabase/migrations/..._recommend_listings_fn.sql.
   const { data, error } = await supabase.rpc("recommend_listings", {
-    p_limit: 15,
-    p_offset: 0,
+    p_limit: PAGE_SIZE,
+    p_offset: (page - 1) * PAGE_SIZE,
   });
 
   if (error) {
@@ -22,6 +36,29 @@ export default async function ExplorePage() {
 
   // The client is untyped, so `data` comes back as `any`; cast to our RPC row shape.
   const listings = (data ?? []) as RecommendedListing[];
+
+  // An out-of-range page (e.g. hand-typed) returns no rows — and therefore no
+  // total_count to read — so bounce back to the first page instead of a dead end.
+  if (listings.length === 0 && page > 1) {
+    redirect("/tourist/explore");
+  }
+
+  // Every row carries the same windowed total; no rows means no listings at all.
+  const totalCount = Number(listings[0]?.total_count ?? 0);
+  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
+
+  // Build pagination hrefs that preserve any other query params (filters, later).
+  const buildHref = (targetPage: number) => {
+    const sp = new URLSearchParams();
+    for (const [key, value] of Object.entries(params)) {
+      if (key === "page" || value === undefined) continue;
+      if (Array.isArray(value)) value.forEach((v) => sp.append(key, v));
+      else sp.set(key, value);
+    }
+    if (targetPage > 1) sp.set("page", String(targetPage));
+    const qs = sp.toString();
+    return qs ? `/tourist/explore?${qs}` : "/tourist/explore";
+  };
 
   return (
     <main className="p-8">
@@ -71,6 +108,12 @@ export default async function ExplorePage() {
           <p className="text-gray-500 col-span-full">No listings found.</p>
         )}
       </div>
+
+      <Pagination
+        currentPage={page}
+        totalPages={totalPages}
+        buildHref={buildHref}
+      />
     </main>
   );
 }
