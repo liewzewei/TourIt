@@ -2,11 +2,16 @@
 
 import createClient from "@/lib/supabase/server";
 
-export async function markOnboardingComplete(userId: string) {
+export async function markOnboardingComplete() {
   const supabase = await createClient();
-  
-  await supabase
+
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) throw new Error("Not authenticated");
+
+  const { error } = await supabase
     .from("profiles")
     .update({ onboarding_completed: true })
-    .eq("id", userId);
+    .eq("id", user.id);
+
+  if (error) throw new Error(error.message);
 }
