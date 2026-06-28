@@ -28,7 +28,7 @@ import { MenuItem } from "@/types/index";
 
 const ROLE_NAV_MENU_ITEMS: Record<string, MenuItem[]> = {
     tourist: [
-        { title: "Explore", url: ROLE_HOME_PATH.tourist },
+        { title: "Explore", url: "/tourist/explore" },
         { title: "Itineraries", url: "/tourist/itineraries" },
     ],
     business_owner: [
