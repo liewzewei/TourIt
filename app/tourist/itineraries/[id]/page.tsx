@@ -162,7 +162,7 @@ export default function ItineraryViewPage({ params }: { params: Promise<{ id: st
     };
     
     fetchItineraryData();
-  }, [id]);
+  }, [id, supabase]);
 
   if (loading) return <div className="p-8 text-center text-gray-500 animate-pulse">Loading itinerary...</div>;
   if (!itinerary) return <div className="p-8 text-center text-red-500">Itinerary not found.</div>;
@@ -326,7 +326,7 @@ export default function ItineraryViewPage({ params }: { params: Promise<{ id: st
                     <div key={i} className="p-3 border rounded bg-gray-50 text-sm">
                       <p className="font-bold">{item.listing_name}</p>
                       <p className="text-gray-600">📅 {item.scheduled_date} 🕒 {item.suggested_start_time} - {item.suggested_end_time}</p>
-                      <p className="text-gray-500 italic mt-1">"{item.reason}"</p>
+                      <p className="text-gray-500 italic mt-1">&quot;{item.reason}&quot;</p>
                     </div>
                   ))}
                 </div>
