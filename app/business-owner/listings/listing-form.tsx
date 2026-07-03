@@ -1,8 +1,10 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { createListing, type ActionState } from "./action";
-import { X, Check, ChevronDown } from "lucide-react"; 
+import { X, Check, ChevronDown } from "lucide-react";
+import { useToast } from "@/context/toast-context";
+import { isValidTimeRange } from "@/lib/time-constraints";
 
 export type Tag = {
   id: string;
@@ -14,13 +16,31 @@ export default function ListingForm({ availableTags }: { availableTags: Tag[] })
   const [state, formAction, isPending] = useActionState<ActionState, FormData>(createListing, null);
   const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [is24Hours, setIs24Hours] = useState(false);
+  const [openTime, setOpenTime] = useState("");
+  const [closeTime, setCloseTime] = useState("");
+  const { toast } = useToast();
+
+  // Surface server action results as toasts.
+  useEffect(() => {
+    if (state?.error) {
+      toast({ variant: "destructive", title: "Couldn't create listing", description: state.error });
+    } else if (state?.success) {
+      toast({ variant: "success", title: "Listing created", description: "Your listing was created successfully." });
+    }
+  }, [state, toast]);
+
+  // Instant client-side feedback; the server action and DB constraint remain the
+  // authoritative checks.
+  const hoursRangeInvalid =
+    !is24Hours && openTime !== "" && closeTime !== "" && !isValidTimeRange(openTime, closeTime);
 
   const toggleTag = (tag: Tag) => {
     if (selectedTags.some((t) => t.id === tag.id)) {
       setSelectedTags(selectedTags.filter((t) => t.id !== tag.id));
     } else {
       if (selectedTags.length >= 5) {
-        alert("You can only select up to 5 tags.");
+        toast({ description: "You can only select up to 5 tags." });
         return;
       }
       setSelectedTags([...selectedTags, tag]);
@@ -49,15 +69,59 @@ export default function ListingForm({ availableTags }: { availableTags: Tag[] })
         <input type="text" id="listing_address" name="listing_address" className="mt-1 block w-full rounded-md border border-gray-300 p-2" />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label htmlFor="open_time" className="block text-sm font-medium">Opening Time</label>
-          <input type="time" id="open_time" name="open_time" className="mt-1 block w-full rounded-md border border-gray-300 p-2" />
+      <div className="space-y-2">
+        <label className="flex items-center gap-2 text-sm font-medium">
+          <input
+            type="checkbox"
+            name="is_24_hours"
+            value="true"
+            checked={is24Hours}
+            onChange={(e) => {
+              setIs24Hours(e.target.checked);
+              if (e.target.checked) {
+                setOpenTime("");
+                setCloseTime("");
+              }
+            }}
+            className="h-4 w-4 rounded border-gray-300"
+          />
+          Open 24 hours
+        </label>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="open_time" className="block text-sm font-medium">Opening Time {!is24Hours && "*"}</label>
+            <input
+              type="time"
+              id="open_time"
+              name="open_time"
+              value={openTime}
+              onChange={(e) => setOpenTime(e.target.value)}
+              disabled={is24Hours}
+              required={!is24Hours}
+              aria-invalid={hoursRangeInvalid}
+              className="mt-1 block w-full rounded-md border border-gray-300 p-2 disabled:cursor-not-allowed disabled:bg-gray-100"
+            />
+          </div>
+          <div>
+            <label htmlFor="close_time" className="block text-sm font-medium">Closing Time {!is24Hours && "*"}</label>
+            <input
+              type="time"
+              id="close_time"
+              name="close_time"
+              value={closeTime}
+              onChange={(e) => setCloseTime(e.target.value)}
+              disabled={is24Hours}
+              required={!is24Hours}
+              aria-invalid={hoursRangeInvalid}
+              className="mt-1 block w-full rounded-md border border-gray-300 p-2 disabled:cursor-not-allowed disabled:bg-gray-100"
+            />
+          </div>
         </div>
-        <div>
-          <label htmlFor="close_time" className="block text-sm font-medium">Closing Time</label>
-          <input type="time" id="close_time" name="close_time" className="mt-1 block w-full rounded-md border border-gray-300 p-2" />
-        </div>
+
+        {hoursRangeInvalid && (
+          <p className="text-sm text-destructive">Closing time must be after opening time.</p>
+        )}
       </div>
 
       {/* --- NEW TAG SELECTOR UI --- */}
@@ -102,10 +166,7 @@ export default function ListingForm({ availableTags }: { availableTags: Tag[] })
         </div>
       </div>
 
-      {state?.error && <p className="text-red-500 text-sm">{state.error}</p>}
-      {state?.success && <p className="text-green-500 text-sm">Listing created successfully!</p>}
-
-      <button type="submit" disabled={isPending} className="w-full bg-black text-white rounded-md py-2 px-4 hover:bg-neutral-800 disabled:opacity-50 mt-4">
+      <button type="submit" disabled={isPending || hoursRangeInvalid} className="w-full bg-black text-white rounded-md py-2 px-4 hover:bg-neutral-800 disabled:opacity-50 mt-4">
         {isPending ? "Creating..." : "Create Listing"}
       </button>
     </form>
