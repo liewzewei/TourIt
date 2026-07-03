@@ -49,18 +49,12 @@ test("tourist completes quiz, explores, and schedules a listing", async ({
     page.getByRole("heading", { name: "Schedule Visit" }),
   ).toBeVisible();
 
-  await page.locator('input[type="date"]').fill("2026-08-01");
-  const times = page.locator('input[type="time"]');
-  await times.nth(0).fill("10:00");
-  await times.nth(1).fill("11:00");
-
-  // Success is confirmed via window.alert; register the listener before the
-  // click that triggers it.
-  const dialogPromise = page.waitForEvent("dialog");
+  // "Add now, let AI decide the timings" is checked by default, so the stop is
+  // added without a time for the AI scheduler to slot in later.
   await page.getByRole("button", { name: "Save Schedule" }).click();
-  const dialog = await dialogPromise;
-  expect(dialog.message()).toContain("Successfully added");
-  await dialog.accept();
+
+  // Success is confirmed via a toast.
+  await expect(page.getByText("Added to your itinerary")).toBeVisible();
 
   // Modal closes on success.
   await expect(

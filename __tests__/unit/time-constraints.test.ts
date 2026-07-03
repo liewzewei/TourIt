@@ -1,4 +1,8 @@
-import { isValidTimeRange, isValidListingHours } from "@/lib/time-constraints";
+import {
+  isValidTimeRange,
+  isValidListingHours,
+  isWithinOperatingHours,
+} from "@/lib/time-constraints";
 
 describe("isValidTimeRange", () => {
   it("returns true when start is strictly before end", () => {
@@ -44,5 +48,37 @@ describe("isValidListingHours", () => {
   it("is invalid when not 24h and closing is not after opening", () => {
     expect(isValidListingHours({ is24h: false, open: "17:00", close: "09:00" })).toBe(false);
     expect(isValidListingHours({ is24h: false, open: "09:00", close: "09:00" })).toBe(false);
+  });
+});
+
+describe("isWithinOperatingHours", () => {
+  const hours = { is24h: false, open: "09:00", close: "17:00" };
+
+  it("is always within hours when the listing is open 24 hours", () => {
+    expect(
+      isWithinOperatingHours({ is24h: true, open: null, close: null, enter: "03:00", exit: "05:00" }),
+    ).toBe(true);
+  });
+
+  it("accepts a visit fully inside the opening hours", () => {
+    expect(isWithinOperatingHours({ ...hours, enter: "10:00", exit: "16:00" })).toBe(true);
+  });
+
+  it("accepts a visit touching both boundaries (inclusive)", () => {
+    expect(isWithinOperatingHours({ ...hours, enter: "09:00", exit: "17:00" })).toBe(true);
+  });
+
+  it("rejects a visit that starts before opening", () => {
+    expect(isWithinOperatingHours({ ...hours, enter: "08:59", exit: "12:00" })).toBe(false);
+  });
+
+  it("rejects a visit that ends after closing", () => {
+    expect(isWithinOperatingHours({ ...hours, enter: "12:00", exit: "17:01" })).toBe(false);
+  });
+
+  it("passes when the listing has no recorded hours to constrain against", () => {
+    expect(
+      isWithinOperatingHours({ is24h: false, open: null, close: null, enter: "23:00", exit: "23:30" }),
+    ).toBe(true);
   });
 });
