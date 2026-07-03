@@ -45,9 +45,11 @@ export default async function ListingDetailsPage({
       <div className="bg-gray-50 p-6 rounded-lg border">
         <h3 className="font-semibold mb-2">Details</h3>
         <p>📍 <span className="font-semibold">Address:</span> {listing.listing_address || "No address provided"}</p>
-        {(listing.open_time || listing.close_time) && (
-          <p>🕒 <span className="font-semibold">Operation Hours:</span> {listing.open_time} - {listing.close_time}</p>
-        )}
+        {listing.is_24_hours ? (
+          <p>🕒 <span className="font-semibold">Operation Hours:</span> Open 24 hours</p>
+        ) : listing.open_time && listing.close_time ? (
+          <p>🕒 <span className="font-semibold">Operation Hours:</span> {listing.open_time.slice(0, 5)} - {listing.close_time.slice(0, 5)}</p>
+        ) : null}
       </div>
     </main>
   );
