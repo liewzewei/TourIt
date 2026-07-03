@@ -1,9 +1,11 @@
 'use client';
 
 import { useEffect, useState, use } from 'react';
+import { AlertDialog } from 'radix-ui';
 import createClient from '@/lib/supabase/client';
 import Link from 'next/link';
 import { generateItinerarySchedule, ScheduleItem } from './generate-actions';
+import { useToast } from '@/context/toast-context';
 
 type ItineraryListing = {
   itinerary_id: string;
@@ -40,9 +42,12 @@ export default function ItineraryViewPage({ params }: { params: Promise<{ id: st
   const [genRemarks, setGenRemarks] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedSchedule, setGeneratedSchedule] = useState<ScheduleItem[] | null>(null);
-  const [genError, setGenError] = useState("");
-  
+
+  // Which activity is pending a delete confirmation (null = dialog closed).
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+
   const supabase = createClient();
+  const { toast } = useToast();
 
   // Group by unique dates (handling null dates as "Unscheduled")
   const uniqueDates = Array.from(new Set(activities.map(a => a.start_date || "Unscheduled")));
@@ -52,20 +57,23 @@ export default function ItineraryViewPage({ params }: { params: Promise<{ id: st
 
   const handleGenerate = async () => {
     if (!genStartDate || !genEndDate) {
-      setGenError("Please select start and end dates.");
+      toast({ variant: "destructive", description: "Please select start and end dates." });
       return;
     }
-    setGenError("");
+    if (genEndDate < genStartDate) {
+      toast({ variant: "destructive", description: "End date must be on or after the start date." });
+      return;
+    }
     setIsGenerating(true);
     setGeneratedSchedule(null);
-    
+
     const result = await generateItinerarySchedule(id, genStartDate, genEndDate, genRemarks);
-    
+
     setIsGenerating(false);
     if (result.success) {
       setGeneratedSchedule(result.schedule);
     } else {
-      setGenError(result.error);
+      toast({ variant: "destructive", description: result.error });
     }
   };
 
@@ -75,41 +83,43 @@ export default function ItineraryViewPage({ params }: { params: Promise<{ id: st
     
     let hasError = false;
 
-    // Loop through the AI schedule and update each listing
+    // Loop through the AI schedule and update each listing. Single-day visits:
+    // end_date mirrors start_date (this also keeps the valid_itinerary_time CHECK
+    // active). The operating-hours DB trigger is the final backstop here.
     for (const item of generatedSchedule) {
       const { error } = await supabase
         .from('itinerary_listings')
         .update({
           start_date: item.scheduled_date,
-          end_date: item.scheduled_date, // Assuming activities end on the same day
+          end_date: item.scheduled_date,
           start_time: item.suggested_start_time,
           end_time: item.suggested_end_time,
         })
         .eq('itinerary_id', id)
         .eq('listing_id', item.listing_id);
-        
+
       if (error) {
         console.error("Failed to update listing:", item.listing_id, error);
         hasError = true;
       }
     }
-    
+
     setIsSaving(false);
-    
+
     if (hasError) {
-      alert("Some items failed to save. Check console for details.");
+      toast({ variant: "destructive", description: "Some stops couldn't be saved. Please try again." });
     } else {
-      alert("Schedule saved successfully!");
+      toast({ variant: "success", description: "Schedule saved to your itinerary." });
       setShowGenerateModal(false);
       setGeneratedSchedule(null);
       // Refresh the page so the newly scheduled activities appear in the list!
-      window.location.reload(); 
+      window.location.reload();
     }
   };
 
-  // Remove Activity Function
-  const handleRemoveActivity = async (listingId: string) => {
-    if (!confirm("Are you sure you want to remove this activity?")) return;
+  // Remove Activity (confirmed via the AlertDialog below).
+  const performRemoveActivity = async (listingId: string) => {
+    setPendingDeleteId(null);
 
     const { error } = await supabase
       .from('itinerary_listings')
@@ -119,8 +129,9 @@ export default function ItineraryViewPage({ params }: { params: Promise<{ id: st
 
     if (!error) {
       setActivities(prev => prev.filter(a => a.listing_id !== listingId));
+      toast({ variant: "success", description: "Activity removed." });
     } else {
-      alert("Failed to remove activity");
+      toast({ variant: "destructive", description: "Failed to remove activity." });
     }
   };
 
@@ -262,8 +273,8 @@ export default function ItineraryViewPage({ params }: { params: Promise<{ id: st
                   </div>
                   
                   {/* Delete Button */}
-                  <button 
-                    onClick={() => handleRemoveActivity(activity.listing_id)}
+                  <button
+                    onClick={() => setPendingDeleteId(activity.listing_id)}
                     className="p-3 text-neutral-400 hover:text-red-700 hover:bg-red-50 rounded-md transition"
                     title="Remove from itinerary"
                   >
@@ -304,8 +315,6 @@ export default function ItineraryViewPage({ params }: { params: Promise<{ id: st
                     maxLength={200}
                   />
                 </div>
-                
-                {genError && <p className="text-red-600 text-sm">{genError}</p>}
                 
                 <div className="flex justify-end gap-3 mt-6">
                   <button onClick={() => setShowGenerateModal(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded">Cancel</button>
@@ -350,6 +359,35 @@ export default function ItineraryViewPage({ params }: { params: Promise<{ id: st
           </div>
         </div>
       )}
+
+      {/* Delete confirmation */}
+      <AlertDialog.Root
+        open={pendingDeleteId !== null}
+        onOpenChange={(open) => { if (!open) setPendingDeleteId(null); }}
+      >
+        <AlertDialog.Portal>
+          <AlertDialog.Overlay className="fixed inset-0 z-50 bg-black/50" />
+          <AlertDialog.Content className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-lg bg-white p-6 shadow-xl">
+            <AlertDialog.Title className="text-lg font-bold text-gray-900">
+              Remove activity?
+            </AlertDialog.Title>
+            <AlertDialog.Description className="mt-2 text-sm text-gray-600">
+              This removes the activity from your itinerary. You can add it again from Explore.
+            </AlertDialog.Description>
+            <div className="mt-6 flex justify-end gap-2">
+              <AlertDialog.Cancel className="px-4 py-2 border rounded hover:bg-gray-50">
+                Cancel
+              </AlertDialog.Cancel>
+              <AlertDialog.Action
+                onClick={() => { if (pendingDeleteId) performRemoveActivity(pendingDeleteId); }}
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+              >
+                Remove
+              </AlertDialog.Action>
+            </div>
+          </AlertDialog.Content>
+        </AlertDialog.Portal>
+      </AlertDialog.Root>
     </main>
   );
 }
