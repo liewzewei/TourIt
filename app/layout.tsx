@@ -5,6 +5,7 @@ import "./globals.css";
 import Nav from "@/components/nav";
 import createClient from "@/lib/supabase/server";
 import { UserProvider } from "@/context/user-context";
+import { ToastProvider } from "@/context/toast-context";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -48,8 +49,10 @@ export default async function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <UserProvider user={user} profile={profile}>
-          <Nav />
-          {children}
+          <ToastProvider>
+            <Nav />
+            {children}
+          </ToastProvider>
         </UserProvider>
       </body>
     </html>
