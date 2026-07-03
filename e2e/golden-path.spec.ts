@@ -53,8 +53,11 @@ test("tourist completes quiz, explores, and schedules a listing", async ({
   // added without a time for the AI scheduler to slot in later.
   await page.getByRole("button", { name: "Save Schedule" }).click();
 
-  // Success is confirmed via a toast.
-  await expect(page.getByText("Added to your itinerary")).toBeVisible();
+  // Success is confirmed via a toast. Match the visible toast exactly — a
+  // substring match also hits Radix's hidden "Notification ..." aria-live span.
+  await expect(
+    page.getByText("Added to your itinerary.", { exact: true }),
+  ).toBeVisible();
 
   // Modal closes on success.
   await expect(
