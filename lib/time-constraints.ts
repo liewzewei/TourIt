@@ -23,3 +23,26 @@ export function isValidListingHours({
   if (!open || !close) return false;
   return isValidTimeRange(open, close);
 }
+
+// A visit sits within a listing's operating hours when the listing is open 24
+// hours, or the visit's enter/exit both fall inside [open, close] inclusive (you
+// may arrive exactly at opening and leave exactly at closing). A listing with no
+// recorded hours can't be constrained, so it passes. Callers must pass all four
+// times at matching precision (e.g. all "HH:MM").
+export function isWithinOperatingHours({
+  is24h,
+  open,
+  close,
+  enter,
+  exit,
+}: {
+  is24h: boolean;
+  open: string | null;
+  close: string | null;
+  enter: string;
+  exit: string;
+}): boolean {
+  if (is24h) return true;
+  if (!open || !close) return true;
+  return open <= enter && exit <= close;
+}
