@@ -61,9 +61,11 @@ jobs:
   test-e2e:
     name: E2E Tests
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-    # Expensive and mutates the hosted Supabase, so gate it behind the cheap
-    # checks and run it only on PRs to main (where it guards the merge).
+    timeout-minutes: 20
+    # Runs the app against a real Supabase stack started locally inside the
+    # runner, so E2E exercises the actual migrations, RLS, and seed data with no
+    # effect on any hosted project. Gated behind the cheap checks and PR-only
+    # because spinning the stack up is slow.
     needs: [ci, test-unit]
     if: github.event_name == 'pull_request'
 
@@ -83,16 +85,32 @@ jobs:
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
 
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v2
+        with:
+          version: latest
+
+      - name: Start local Supabase (applies migrations + seed)
+        run: supabase start
+
+      - name: Export local Supabase keys into the job env
+        run: |
+          supabase status -o env > "$RUNNER_TEMP/supabase.env"
+          anon=$(grep -m1 '^ANON_KEY=' "$RUNNER_TEMP/supabase.env" | cut -d= -f2- | tr -d '"')
+          service=$(grep -m1 '^SERVICE_ROLE_KEY=' "$RUNNER_TEMP/supabase.env" | cut -d= -f2- | tr -d '"')
+          test -n "$anon" && test -n "$service"
+          echo "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=$anon" >> "$GITHUB_ENV"
+          echo "SUPABASE_SECRET_KEY=$service" >> "$GITHUB_ENV"
+
       - name: Run E2E tests
         run: npx playwright test
         env:
-          # The dev server (started by Playwright's webServer) and the test
-          # login route read these; the admin client needs the secret key.
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
-          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
-          E2E_TEST_EMAIL: ${{ secrets.E2E_TEST_EMAIL }}
-          E2E_TEST_PASSWORD: ${{ secrets.E2E_TEST_PASSWORD }}
+          # Local stack: fixed URL + a throwaway test account that auth.setup
+          # provisions via the admin API. The publishable/secret keys come from
+          # the export step above (via $GITHUB_ENV).
+          NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+          E2E_TEST_EMAIL: e2e@tourit.local
+          E2E_TEST_PASSWORD: e2e-ci-password
 
       - name: Upload Playwright report
         uses: actions/upload-artifact@v4
