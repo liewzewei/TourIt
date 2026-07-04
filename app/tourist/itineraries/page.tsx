@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react';
 import createClient from '@/lib/supabase/client';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useToast } from '@/context/toast-context';
+import { useConfirm } from '@/context/confirm-context';
 
 type Itinerary = {
   id: string;
@@ -17,7 +18,8 @@ export default function ItinerariesPage() {
   const [loading, setLoading] = useState(true);
   
   const supabase = createClient();
-  const router = useRouter();
+  const { toast } = useToast();
+  const { confirm } = useConfirm();
 
   const fetchItineraries = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -65,15 +67,22 @@ export default function ItinerariesPage() {
     e.preventDefault();
     e.stopPropagation();
 
-    if (!confirm('Are you sure you want to delete this itinerary? This action cannot be undone.')) return;
+    const confirmed = await confirm({
+      title: 'Delete itinerary?',
+      description: 'This permanently deletes the itinerary and everything scheduled in it. This action cannot be undone.',
+      confirmText: 'Delete',
+      variant: 'destructive',
+    });
+    if (!confirmed) return;
 
     await supabase.from('itinerary_listings').delete().eq('itinerary_id', itineraryId);
     const { error } = await supabase.from('itineraries').delete().eq('id', itineraryId);
 
     if (!error) {
       setItineraries(prev => prev.filter(it => it.id !== itineraryId));
+      toast({ variant: 'success', description: 'Itinerary deleted.' });
     } else {
-      alert("Failed to delete itinerary.");
+      toast({ variant: 'destructive', description: 'Failed to delete itinerary.' });
     }
   };
 
