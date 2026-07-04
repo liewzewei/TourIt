@@ -8,14 +8,51 @@ import createClient from "@/lib/supabase/client";
 import { CircleAlert, LoaderCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+// Seeded local accounts (see supabase/seed.sql), used only by the dev-only
+// quick-login buttons below — which are stripped from production builds.
+const DEV_ACCOUNTS = [
+  { label: "Tourist", email: "tourist@tourit.local" },
+  { label: "Business Owner", email: "owner@tourit.local" },
+];
+const DEV_PASSWORD = "password123";
+
 export default function LoginPage() {
   const [isGoogleLoading, setIsGoogleLoading] = useState<boolean>(false);
+  const [devLoadingEmail, setDevLoadingEmail] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const supabase = createClient();
 
   const searchParams = useSearchParams();
   const next = searchParams.get("next");
+
+  // Dev-only: sign in as a seeded account via /auth/test-login, then do a full
+  // navigation so the server sees the fresh session cookies (the proxy
+  // middleware then routes to the correct role home).
+  const devLogin = async (email: string) => {
+    setDevLoadingEmail(email);
+    setError(null);
+
+    try {
+      const res = await fetch("/auth/test-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password: DEV_PASSWORD }),
+      });
+      if (!res.ok) {
+        const data = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(data.error ?? `Login failed (${res.status})`);
+      }
+      window.location.assign(next ?? "/");
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Dev login failed. Is the local Supabase stack running?",
+      );
+      setDevLoadingEmail(null);
+    }
+  };
 
   const loginWithGoogle = async () => {
     setIsGoogleLoading(true);
@@ -76,6 +113,31 @@ export default function LoginPage() {
         )}
         <span className="ml-2">Login with Google</span>
       </Button>
+
+      {process.env.NODE_ENV !== "production" && (
+        <div className="mt-6 border-t pt-6">
+          <p className="mb-3 text-center text-xs text-muted-foreground">
+            Local development only — seeded accounts
+          </p>
+          <div className="flex flex-col gap-2">
+            {DEV_ACCOUNTS.map((account) => (
+              <Button
+                key={account.email}
+                variant="secondary"
+                className="w-full"
+                onClick={() => devLogin(account.email)}
+                disabled={devLoadingEmail !== null}
+              >
+                {devLoadingEmail === account.email ? (
+                  <LoaderCircle className="animate-spin size-5" />
+                ) : (
+                  `Log in as ${account.label}`
+                )}
+              </Button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
