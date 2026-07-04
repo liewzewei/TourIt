@@ -39,7 +39,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.5",
     "jest": "^30.4.2",
-    "supabase": "^2.105.0",
+    "supabase": "^2.109.0",
     "tailwindcss": "^4",
     "ts-node": "^10.9.2",
     "typescript": "^5"
