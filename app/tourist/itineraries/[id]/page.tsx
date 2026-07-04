@@ -1,11 +1,11 @@
 'use client';
 
 import { useEffect, useState, use } from 'react';
-import { AlertDialog } from 'radix-ui';
 import createClient from '@/lib/supabase/client';
 import Link from 'next/link';
 import { generateItinerarySchedule, ScheduleItem } from './generate-actions';
 import { useToast } from '@/context/toast-context';
+import { useConfirm } from '@/context/confirm-context';
 
 type ItineraryListing = {
   itinerary_id: string;
@@ -43,11 +43,9 @@ export default function ItineraryViewPage({ params }: { params: Promise<{ id: st
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedSchedule, setGeneratedSchedule] = useState<ScheduleItem[] | null>(null);
 
-  // Which activity is pending a delete confirmation (null = dialog closed).
-  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
-
   const supabase = createClient();
   const { toast } = useToast();
+  const { confirm } = useConfirm();
 
   // Group by unique dates (handling null dates as "Unscheduled")
   const uniqueDates = Array.from(new Set(activities.map(a => a.start_date || "Unscheduled")));
@@ -117,9 +115,15 @@ export default function ItineraryViewPage({ params }: { params: Promise<{ id: st
     }
   };
 
-  // Remove Activity (confirmed via the AlertDialog below).
-  const performRemoveActivity = async (listingId: string) => {
-    setPendingDeleteId(null);
+  // Remove Activity — confirm via the shared dialog, then delete.
+  const handleRemoveActivity = async (listingId: string) => {
+    const confirmed = await confirm({
+      title: "Remove activity?",
+      description: "This removes the activity from your itinerary. You can add it again from Explore.",
+      confirmText: "Remove",
+      variant: "destructive",
+    });
+    if (!confirmed) return;
 
     const { error } = await supabase
       .from('itinerary_listings')
@@ -274,7 +278,7 @@ export default function ItineraryViewPage({ params }: { params: Promise<{ id: st
                   
                   {/* Delete Button */}
                   <button
-                    onClick={() => setPendingDeleteId(activity.listing_id)}
+                    onClick={() => handleRemoveActivity(activity.listing_id)}
                     className="p-3 text-neutral-400 hover:text-red-700 hover:bg-red-50 rounded-md transition"
                     title="Remove from itinerary"
                   >
@@ -359,35 +363,6 @@ export default function ItineraryViewPage({ params }: { params: Promise<{ id: st
           </div>
         </div>
       )}
-
-      {/* Delete confirmation */}
-      <AlertDialog.Root
-        open={pendingDeleteId !== null}
-        onOpenChange={(open) => { if (!open) setPendingDeleteId(null); }}
-      >
-        <AlertDialog.Portal>
-          <AlertDialog.Overlay className="fixed inset-0 z-50 bg-black/50" />
-          <AlertDialog.Content className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-lg bg-white p-6 shadow-xl">
-            <AlertDialog.Title className="text-lg font-bold text-gray-900">
-              Remove activity?
-            </AlertDialog.Title>
-            <AlertDialog.Description className="mt-2 text-sm text-gray-600">
-              This removes the activity from your itinerary. You can add it again from Explore.
-            </AlertDialog.Description>
-            <div className="mt-6 flex justify-end gap-2">
-              <AlertDialog.Cancel className="px-4 py-2 border rounded hover:bg-gray-50">
-                Cancel
-              </AlertDialog.Cancel>
-              <AlertDialog.Action
-                onClick={() => { if (pendingDeleteId) performRemoveActivity(pendingDeleteId); }}
-                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-              >
-                Remove
-              </AlertDialog.Action>
-            </div>
-          </AlertDialog.Content>
-        </AlertDialog.Portal>
-      </AlertDialog.Root>
     </main>
   );
 }
