@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import createClient from "@/lib/supabase/server";
 import { firstValue } from "@/lib/explore-params";
-import { parsePeriod, PERIODS, type Period } from "@/lib/analytics-params";
+import { parsePeriod, PERIOD_LABELS, type Period } from "@/lib/analytics-params";
 import {
   sumStats,
   saveRate,
@@ -12,7 +12,8 @@ import {
 } from "@/lib/analytics";
 import StatCard from "@/components/analytics/stat-card";
 import ListingTable from "@/components/analytics/listing-table";
-import TrendChart from "@/components/analytics/trend-chart";
+import PeriodSelector from "@/components/analytics/period-selector";
+import TrendSection from "@/components/analytics/trend-section";
 
 // Fully dynamic: reads the ?period= search param and the caller's session
 // (via the Supabase server client) to scope the SECURITY DEFINER RPCs to the
@@ -66,7 +67,6 @@ export default async function AnalyticsPage({
   const totals = sumStats(rows);
   const rate = saveRate(totals.saves, totals.views);
   const prevRate = saveRate(totals.prev_saves, totals.prev_views);
-  const noActivity = totals.views === 0 && totals.saves === 0;
   const comparisonLabel = `previous ${PERIOD_LABELS[period]}`;
 
   return (
@@ -99,29 +99,11 @@ export default async function AnalyticsPage({
           </div>
 
           <section className="mb-8">
-            <h2 className="mb-3 text-sm font-medium text-gray-500">
-              Per listing
-            </h2>
+            <h2 className="mb-3 text-sm font-medium text-gray-500">Per listing</h2>
             <ListingTable rows={rows} totals={totals} />
           </section>
 
-          <section className="rounded-lg border bg-white p-6">
-            <div className="mb-4 flex items-center justify-between gap-4">
-              <h2 className="text-sm font-medium text-gray-500">
-                Views &amp; saves over time
-              </h2>
-              <div className="flex gap-4 text-xs text-gray-500">
-                <LegendDot className="bg-blue-500" label="Views" />
-                <LegendDot className="bg-emerald-500" label="Saves" />
-              </div>
-            </div>
-            <TrendChart points={series} className="h-auto w-full" />
-            {noActivity && (
-              <p className="mt-3 text-sm text-gray-400">
-                No visits or saves recorded in this period yet.
-              </p>
-            )}
-          </section>
+          <TrendSection points={series} />
         </>
       )}
     </main>
@@ -132,48 +114,8 @@ function Header({ period }: { period: Period }) {
   return (
     <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
       <h1 className="text-3xl font-bold">Insights</h1>
-      <PeriodSelector period={period} />
+      <PeriodSelector period={period} basePath="/business-owner/analytics" />
     </div>
-  );
-}
-
-const PERIOD_LABELS: Record<Period, string> = {
-  "7d": "7 days",
-  "30d": "30 days",
-  "90d": "90 days",
-};
-
-// Server-rendered links (no client JS), mirroring the explore Pagination.
-function PeriodSelector({ period }: { period: Period }) {
-  return (
-    <nav className="flex gap-1 rounded-md border p-1" aria-label="Period">
-      {PERIODS.map((p) => {
-        const active = p === period;
-        return (
-          <Link
-            key={p}
-            href={`/business-owner/analytics?period=${p}`}
-            aria-current={active ? "page" : undefined}
-            className={`rounded px-3 py-1 text-sm transition ${
-              active
-                ? "bg-black text-white"
-                : "text-gray-600 hover:bg-gray-100"
-            }`}
-          >
-            {PERIOD_LABELS[p]}
-          </Link>
-        );
-      })}
-    </nav>
-  );
-}
-
-function LegendDot({ className, label }: { className: string; label: string }) {
-  return (
-    <span className="inline-flex items-center gap-1.5">
-      <span className={`inline-block size-2.5 rounded-full ${className}`} />
-      {label}
-    </span>
   );
 }
 
