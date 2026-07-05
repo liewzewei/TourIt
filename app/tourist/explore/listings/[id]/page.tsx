@@ -1,5 +1,6 @@
 import createClient from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
+import { after } from "next/server";
 import AddToItineraryButton from "./AddToItineraryButton";
 
 // Notice params is now a Promise
@@ -28,6 +29,25 @@ export default async function ListingDetailsPage({
   if (error || !listing) {
     console.error("Supabase Error:", error); 
     return notFound();
+  }
+
+  // Record a view for the owner's analytics. after() runs once the response has
+  // been sent, so it never blocks the page. We read the user during render
+  // (allowed); we must NOT read cookies/headers inside the after() callback in a
+  // Server Component. The render-time client keeps the session token in memory,
+  // so the RPC still runs as this user and log_listing_view sees the right
+  // auth.uid(). The RPC itself skips owner self-views and de-dupes per day, so we
+  // don't guard those here.
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (user) {
+    after(async () => {
+      const { error: logError } = await supabase.rpc("log_listing_view", {
+        p_listing_id: listing.id,
+      });
+      if (logError) console.error("log_listing_view failed:", logError);
+    });
   }
 
   // Render the full details page
