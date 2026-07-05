@@ -10,6 +10,14 @@ export const DEFAULT_PERIOD: Period = "30d";
 
 const PERIOD_DAYS: Record<Period, number> = { "7d": 7, "30d": 30, "90d": 90 };
 
+// Human-readable label per preset — used by the period selector and the
+// "vs previous N days" delta copy.
+export const PERIOD_LABELS: Record<Period, string> = {
+  "7d": "7 days",
+  "30d": "30 days",
+  "90d": "90 days",
+};
+
 export type PeriodRange = { period: Period; from: string; to: string };
 
 // today, in Asia/Singapore, as YYYY-MM-DD (en-CA formats ISO-style).
