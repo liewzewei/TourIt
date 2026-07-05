@@ -23,6 +23,14 @@ export type StatTotals = {
   prev_saves: number;
 };
 
+// One zero-filled day from get_owner_views_timeseries. `day` is an ISO date
+// string (YYYY-MM-DD, Asia/Singapore) as returned by PostgREST for a date column.
+export type OwnerTimeseriesPoint = {
+  day: string;
+  views: number;
+  saves: number;
+};
+
 // Save-rate = saves / views for the same scope + period, as a fraction in the
 // [0, 1] range (callers multiply by 100 to display). It is an aggregate ratio,
 // NOT a per-person match, so a save without a same-day logged view can push it
