@@ -11,6 +11,7 @@ import {
   type OwnerTimeseriesPoint,
 } from "@/lib/analytics";
 import StatCard from "@/components/analytics/stat-card";
+import ListingTable from "@/components/analytics/listing-table";
 import TrendChart from "@/components/analytics/trend-chart";
 
 // Fully dynamic: reads the ?period= search param and the caller's session
@@ -96,6 +97,13 @@ export default async function AnalyticsPage({
               comparisonLabel={comparisonLabel}
             />
           </div>
+
+          <section className="mb-8">
+            <h2 className="mb-3 text-sm font-medium text-gray-500">
+              Per listing
+            </h2>
+            <ListingTable rows={rows} totals={totals} />
+          </section>
 
           <section className="rounded-lg border bg-white p-6">
             <div className="mb-4 flex items-center justify-between gap-4">
