@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 
 import createClient from "@/lib/supabase/server";
@@ -16,6 +17,7 @@ import ListingTable from "@/components/analytics/listing-table";
 import PeriodSelector from "@/components/analytics/period-selector";
 import TrendSection from "@/components/analytics/trend-section";
 import AudiencePanel from "@/components/analytics/audience-panel";
+import AiInsight, { AiInsightSkeleton } from "@/components/analytics/ai-insight";
 
 // Fully dynamic: reads the ?period= search param and the caller's session
 // (via the Supabase server client) to scope the SECURITY DEFINER RPCs to the
@@ -89,6 +91,20 @@ export default async function AnalyticsPage({
         <EmptyNoListings />
       ) : (
         <>
+          <Suspense fallback={<AiInsightSkeleton />}>
+            <AiInsight
+              scope="portfolio"
+              periodLabel={PERIOD_LABELS[period]}
+              views={totals.views}
+              saves={totals.saves}
+              saveRate={rate}
+              viewsDelta={deltaPct(totals.views, totals.prev_views)}
+              savesDelta={deltaPct(totals.saves, totals.prev_saves)}
+              saverCount={audience.saver_count}
+              topTags={audience.tags}
+            />
+          </Suspense>
+
           <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
             <StatCard
               label="Unique visitors"
