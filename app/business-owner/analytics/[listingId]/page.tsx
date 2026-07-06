@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -15,6 +16,7 @@ import StatCard from "@/components/analytics/stat-card";
 import PeriodSelector from "@/components/analytics/period-selector";
 import TrendSection from "@/components/analytics/trend-section";
 import AudiencePanel from "@/components/analytics/audience-panel";
+import AiInsight, { AiInsightSkeleton } from "@/components/analytics/ai-insight";
 
 // Per-listing drill-down. Reuses get_owner_listing_stats (which only returns the
 // caller's own listings) and picks this listing's row — a missing row means the
@@ -99,6 +101,21 @@ export default async function ListingAnalyticsPage({
           />
         </div>
       </div>
+
+      <Suspense fallback={<AiInsightSkeleton />}>
+        <AiInsight
+          scope="listing"
+          listingName={row.listing_name}
+          periodLabel={PERIOD_LABELS[period]}
+          views={row.views}
+          saves={row.saves}
+          saveRate={rate}
+          viewsDelta={deltaPct(row.views, row.prev_views)}
+          savesDelta={deltaPct(row.saves, row.prev_saves)}
+          saverCount={audience.saver_count}
+          topTags={audience.tags}
+        />
+      </Suspense>
 
       <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
         <StatCard
