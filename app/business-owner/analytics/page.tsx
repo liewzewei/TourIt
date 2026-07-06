@@ -9,11 +9,13 @@ import {
   deltaPct,
   type ListingStatRow,
   type OwnerTimeseriesPoint,
+  type OwnerAudience,
 } from "@/lib/analytics";
 import StatCard from "@/components/analytics/stat-card";
 import ListingTable from "@/components/analytics/listing-table";
 import PeriodSelector from "@/components/analytics/period-selector";
 import TrendSection from "@/components/analytics/trend-section";
+import AudiencePanel from "@/components/analytics/audience-panel";
 
 // Fully dynamic: reads the ?period= search param and the caller's session
 // (via the Supabase server client) to scope the SECURITY DEFINER RPCs to the
@@ -28,13 +30,14 @@ export default async function AnalyticsPage({
   const { period, from, to } = parsePeriod(firstValue(params.period));
 
   const supabase = await createClient();
-  const [statsRes, seriesRes] = await Promise.all([
+  const [statsRes, seriesRes, audienceRes] = await Promise.all([
     supabase.rpc("get_owner_listing_stats", { p_from: from, p_to: to }),
     supabase.rpc("get_owner_views_timeseries", {
       p_listing_id: null,
       p_from: from,
       p_to: to,
     }),
+    supabase.rpc("get_owner_audience_tags", { p_listing_id: null }),
   ]);
 
   if (statsRes.error || seriesRes.error) {
@@ -63,6 +66,15 @@ export default async function AnalyticsPage({
     views: Number(p.views),
     saves: Number(p.saves),
   }));
+
+  // The audience panel is secondary: on an RPC error, fall back to the locked
+  // state rather than failing the whole dashboard.
+  if (audienceRes.error) console.error("Audience fetch failed:", audienceRes.error);
+  const audience = (
+    !audienceRes.error && audienceRes.data
+      ? audienceRes.data
+      : { saver_count: 0, threshold: 10, tags: null }
+  ) as OwnerAudience;
 
   const totals = sumStats(rows);
   const rate = saveRate(totals.saves, totals.views);
@@ -104,6 +116,10 @@ export default async function AnalyticsPage({
           </section>
 
           <TrendSection points={series} />
+
+          <div className="mt-8">
+            <AudiencePanel data={audience} scopeLabel="your listings" />
+          </div>
         </>
       )}
     </main>

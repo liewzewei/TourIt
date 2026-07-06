@@ -9,10 +9,12 @@ import {
   deltaPct,
   type ListingStatRow,
   type OwnerTimeseriesPoint,
+  type OwnerAudience,
 } from "@/lib/analytics";
 import StatCard from "@/components/analytics/stat-card";
 import PeriodSelector from "@/components/analytics/period-selector";
 import TrendSection from "@/components/analytics/trend-section";
+import AudiencePanel from "@/components/analytics/audience-panel";
 
 // Per-listing drill-down. Reuses get_owner_listing_stats (which only returns the
 // caller's own listings) and picks this listing's row — a missing row means the
@@ -30,13 +32,14 @@ export default async function ListingAnalyticsPage({
   const { period, from, to } = parsePeriod(firstValue(sp.period));
 
   const supabase = await createClient();
-  const [statsRes, seriesRes] = await Promise.all([
+  const [statsRes, seriesRes, audienceRes] = await Promise.all([
     supabase.rpc("get_owner_listing_stats", { p_from: from, p_to: to }),
     supabase.rpc("get_owner_views_timeseries", {
       p_listing_id: listingId,
       p_from: from,
       p_to: to,
     }),
+    supabase.rpc("get_owner_audience_tags", { p_listing_id: listingId }),
   ]);
 
   if (statsRes.error || seriesRes.error) {
@@ -71,6 +74,14 @@ export default async function ListingAnalyticsPage({
     views: Number(p.views),
     saves: Number(p.saves),
   }));
+
+  // Secondary: fall back to the locked state on an audience RPC error.
+  if (audienceRes.error) console.error("Listing audience fetch failed:", audienceRes.error);
+  const audience = (
+    !audienceRes.error && audienceRes.data
+      ? audienceRes.data
+      : { saver_count: 0, threshold: 10, tags: null }
+  ) as OwnerAudience;
 
   const rate = saveRate(row.saves, row.views);
   const prevRate = saveRate(row.prev_saves, row.prev_views);
@@ -111,6 +122,10 @@ export default async function ListingAnalyticsPage({
       </div>
 
       <TrendSection points={series} />
+
+      <div className="mt-8">
+        <AudiencePanel data={audience} scopeLabel="this listing" />
+      </div>
     </main>
   );
 }
