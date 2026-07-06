@@ -31,6 +31,17 @@ export type OwnerTimeseriesPoint = {
   saves: number;
 };
 
+// One tag in the anonymized audience profile: how many distinct savers picked it.
+export type AudienceTag = { tag_name: string; category: string; savers: number };
+
+// get_owner_audience_tags payload. `tags` is null until `saver_count` reaches
+// `threshold` (k-anonymity) — the distribution is withheld below it.
+export type OwnerAudience = {
+  saver_count: number;
+  threshold: number;
+  tags: AudienceTag[] | null;
+};
+
 // Save-rate = saves / views for the same scope + period, as a fraction in the
 // [0, 1] range (callers multiply by 100 to display). It is an aggregate ratio,
 // NOT a per-person match, so a save without a same-day logged view can push it
