@@ -93,6 +93,9 @@ jobs:
       - name: Start local Supabase (applies migrations + seed)
         run: supabase start
 
+      - name: Run database tests (pgTAP)
+        run: supabase test db
+
       - name: Export local Supabase keys into the job env
         run: |
           supabase status -o env > "$RUNNER_TEMP/supabase.env"
