@@ -34,6 +34,7 @@ const ROLE_NAV_MENU_ITEMS: Record<string, MenuItem[]> = {
     business_owner: [
         { title: "Home", url: ROLE_HOME_PATH.business_owner },
         { title: "Listings", url: "/business-owner/listings" },
+        { title: "Insights", url: "/business-owner/analytics" },
     ],
 };
 

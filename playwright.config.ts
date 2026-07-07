@@ -22,14 +22,28 @@ export default defineConfig({
     trace: "on-first-retry",
   },
   projects: [
-    // Runs first: provisions the test user and writes the auth state.
+    // Runs first: provisions the test users and writes the auth states
+    // (auth.setup.ts -> tourist, owner.setup.ts -> business owner).
     { name: "setup", testMatch: /.*\.setup\.ts/ },
     {
+      // Tourist specs (e.g. the golden path). Owner specs run in their own
+      // project below, so exclude them here.
       name: "chromium",
       use: {
         ...devices["Desktop Chrome"],
         storageState: "e2e/.auth/user.json",
       },
+      testIgnore: /owner-.*\.spec\.ts/,
+      dependencies: ["setup"],
+    },
+    {
+      // Business-owner specs, run as the seeded owner.
+      name: "owner",
+      use: {
+        ...devices["Desktop Chrome"],
+        storageState: "e2e/.auth/owner.json",
+      },
+      testMatch: /owner-.*\.spec\.ts/,
       dependencies: ["setup"],
     },
   ],
