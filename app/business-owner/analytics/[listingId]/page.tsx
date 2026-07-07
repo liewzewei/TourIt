@@ -17,6 +17,7 @@ import PeriodSelector from "@/components/analytics/period-selector";
 import TrendSection from "@/components/analytics/trend-section";
 import AudiencePanel from "@/components/analytics/audience-panel";
 import AiInsight, { AiInsightSkeleton } from "@/components/analytics/ai-insight";
+import ExportLink from "@/components/analytics/export-link";
 
 // Per-listing drill-down. Reuses get_owner_listing_stats (which only returns the
 // caller's own listings) and picks this listing's row — a missing row means the
@@ -95,10 +96,15 @@ export default async function ListingAnalyticsPage({
         <BackLink period={period} />
         <div className="mt-2 flex flex-wrap items-center justify-between gap-4">
           <h1 className="text-3xl font-bold">{row.listing_name}</h1>
-          <PeriodSelector
-            period={period}
-            basePath={`/business-owner/analytics/${listingId}`}
-          />
+          <div className="flex items-center gap-3">
+            <PeriodSelector
+              period={period}
+              basePath={`/business-owner/analytics/${listingId}`}
+            />
+            <ExportLink
+              href={`/business-owner/analytics/export?period=${period}&listing=${listingId}`}
+            />
+          </div>
         </div>
       </div>
 
