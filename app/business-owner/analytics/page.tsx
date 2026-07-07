@@ -18,6 +18,7 @@ import PeriodSelector from "@/components/analytics/period-selector";
 import TrendSection from "@/components/analytics/trend-section";
 import AudiencePanel from "@/components/analytics/audience-panel";
 import AiInsight, { AiInsightSkeleton } from "@/components/analytics/ai-insight";
+import ExportLink from "@/components/analytics/export-link";
 
 // Fully dynamic: reads the ?period= search param and the caller's session
 // (via the Supabase server client) to scope the SECURITY DEFINER RPCs to the
@@ -146,7 +147,10 @@ function Header({ period }: { period: Period }) {
   return (
     <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
       <h1 className="text-3xl font-bold">Insights</h1>
-      <PeriodSelector period={period} basePath="/business-owner/analytics" />
+      <div className="flex items-center gap-3">
+        <PeriodSelector period={period} basePath="/business-owner/analytics" />
+        <ExportLink href={`/business-owner/analytics/export?period=${period}`} />
+      </div>
     </div>
   );
 }
