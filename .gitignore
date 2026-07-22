@@ -48,5 +48,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# claude code
+# agents
+.agent/
 .claude/
