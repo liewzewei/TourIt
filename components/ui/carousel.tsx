@@ -51,6 +51,11 @@ function Carousel({
   children,
   ...props
 }: React.ComponentProps<"div"> & CarouselProps) {
+  // React Compiler (reactCompiler: true) desyncs useEmblaCarousel's imperative
+  // DOM updates: Embla attaches but the container never scrolls to the selected
+  // slide. Opting this component out of the compiler restores scrolling.
+  "use no memo";
+
   const [carouselRef, api] = useEmblaCarousel(
     {
       ...opts,
