@@ -25,6 +25,8 @@ export type RecommendedListing = {
     open_time: string | null;
     close_time: string | null;
     tags: ListingTag[];
+    // Storage path of the listing's first image (lowest display_order), or null.
+    preview_image_path: string | null;
     match_score: number;
     total_count: number;
 };

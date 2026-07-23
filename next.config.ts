@@ -11,6 +11,12 @@ const nextConfig: NextConfig = {
     // deliberately do NOT use Supabase's image transformation API: it is
     // Pro-plan only (see supabase/config.toml) and billed per origin image.
     //
+    // In local dev, NEXT_PUBLIC_SUPABASE_URL is http://127.0.0.1:54321. Next 16
+    // refuses to optimize images from local/loopback IPs unless this flag is set
+    // (it defaults to false to prevent SSRF into a private network). Enable it in
+    // development only -- production serves from *.supabase.co, a public host, so
+    // the flag stays off there.
+    dangerouslyAllowLocalIP: process.env.NODE_ENV !== "production",
     // Each pattern is scoped to the listing-images bucket path. `search: ""`
     // requires the URL to have no query string -- omitting it would imply a
     // `**` wildcard, which Next's docs advise against.

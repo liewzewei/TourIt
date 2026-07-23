@@ -8,6 +8,10 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
     matcher: [
-        '/((?!_next/static|favicon.ico).*)',
+        // Exclude Next internals from auth/role redirects. _next/image is the
+        // image optimizer endpoint: without this exclusion, its requests get
+        // caught by the role-home redirect below and 307'd away instead of
+        // serving the image, so every next/image render breaks.
+        '/((?!_next/static|_next/image|favicon.ico).*)',
     ],
 };
