@@ -3,8 +3,17 @@
 import createClient from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { isValidListingHours } from "@/lib/time-constraints";
+import { MAX_IMAGES_PER_LISTING } from "@/lib/listing-images";
 
-export type ActionState = { error?: string; success?: boolean } | null;
+// Local to this module: "use server" files may only export async actions, so
+// this can't live alongside the exported helpers.
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+// `listingId` is returned so the client can upload images to the new listing's
+// folder once it exists (see saveListingImages).
+export type ActionState =
+  | { error?: string; success?: boolean; listingId?: string }
+  | null;
 
 export async function createListing(prevState: ActionState, formData: FormData): Promise<ActionState> {
   const supabase = await createClient();
@@ -73,12 +82,66 @@ export async function createListing(prevState: ActionState, formData: FormData):
       
     if (tagError) {
       console.error("Error inserting tags:", tagError);
-      return { error: "Listing created, but failed to save tags." };
+      // The listing itself exists, so still hand back its id -- the client can
+      // upload images even though the tags failed.
+      return { error: "Listing created, but failed to save tags.", listingId: newListing.id };
     }
   }
 
   // 5. Revalidate the page to show the new listing
   revalidatePath("/business-owner/listings");
-  
+
+  return { success: true, listingId: newListing.id };
+}
+
+// Records images the browser has already uploaded to Storage. Called after
+// createListing succeeds, so the listing exists and its RLS ownership check can
+// pass. `paths` are object paths within the listing-images bucket, in the order
+// the owner arranged them -- index 0 becomes the cover image.
+export async function saveListingImages(
+  listingId: string,
+  paths: string[],
+): Promise<{ error?: string; success?: boolean }> {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+  if (authError || !user) {
+    return { error: "You must be logged in to save images." };
+  }
+
+  // These arguments come from the browser, so sanity-check them before touching
+  // the DB. RLS remains the real boundary: a forged listingId belonging to
+  // someone else is rejected by the insert policy regardless of these checks.
+  if (!UUID_RE.test(listingId)) {
+    return { error: "Invalid listing." };
+  }
+  if (paths.length === 0 || paths.length > MAX_IMAGES_PER_LISTING) {
+    return { error: `Expected between 1 and ${MAX_IMAGES_PER_LISTING} images.` };
+  }
+  // Every object must sit in this listing's own folder, which is also what the
+  // storage policy enforces on upload.
+  if (paths.some((path) => !path.startsWith(`${listingId}/`) || path.includes(".."))) {
+    return { error: "Invalid image path." };
+  }
+
+  const { error } = await supabase.from("listing_images").insert(
+    paths.map((image_path, index) => ({
+      listing_id: listingId,
+      image_path,
+      display_order: index,
+    })),
+  );
+
+  if (error) {
+    console.error("Error saving listing images:", error);
+    return { error: "Failed to save images. Please try again." };
+  }
+
+  revalidatePath("/business-owner/listings");
+  revalidatePath("/tourist/explore");
+
   return { success: true };
 }
