@@ -1,11 +1,14 @@
 import createClient from "@/lib/supabase/server";
 
+import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { ImageIcon } from "lucide-react";
 
 import type { RecommendedListing } from "@/types/index";
 import Pagination from "./pagination";
 import FilterBar, { type Tag } from "./filter-bar";
+import { getListingImageUrl } from "@/lib/listing-images";
 import {
   firstValue,
   parsePage,
@@ -100,37 +103,58 @@ export default async function ExplorePage({
           <Link
             href={`/tourist/explore/listings/${listing.id}`}
             key={listing.id}
-            className="border rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col h-full cursor-pointer"
+            className="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col h-full cursor-pointer"
           >
-            <h2 className="text-xl font-semibold mb-2">
-              {listing.listing_name}
-            </h2>
-
-            <p className="text-gray-600 mb-4 line-clamp-3 flex-grow">
-              {listing.listing_description || "No description provided."}
-            </p>
-
-            {/* Tags come back pre-flattened as [{ id, tag_name }] from the RPC */}
-            {listing.tags.length > 0 && (
-              <div className="flex flex-wrap gap-2 mb-4">
-                {listing.tags.map((tag) => (
-                  <span
-                    key={tag.id}
-                    className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full font-medium"
-                  >
-                    {tag.tag_name}
-                  </span>
-                ))}
-              </div>
-            )}
-
-            <div className="text-sm text-gray-500 pt-4 border-t mt-auto">
-              <p>📍 {listing.listing_address || "Location unavailable"}</p>
-              {(listing.open_time || listing.close_time) && (
-                <p>
-                  🕒 {listing.open_time} - {listing.close_time}
-                </p>
+            {/* Fixed aspect box reserves space before load (no layout shift).
+                A missing image falls back to a neutral icon rather than a
+                committed placeholder asset. */}
+            <div className="relative aspect-video bg-gray-100">
+              {listing.preview_image_path ? (
+                <Image
+                  src={getListingImageUrl(listing.preview_image_path)}
+                  alt={listing.listing_name}
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                  className="object-cover"
+                />
+              ) : (
+                <div className="flex h-full items-center justify-center text-gray-300">
+                  <ImageIcon className="h-10 w-10" aria-hidden />
+                </div>
               )}
+            </div>
+
+            <div className="p-6 flex flex-col flex-grow">
+              <h2 className="text-xl font-semibold mb-2">
+                {listing.listing_name}
+              </h2>
+
+              <p className="text-gray-600 mb-4 line-clamp-3 flex-grow">
+                {listing.listing_description || "No description provided."}
+              </p>
+
+              {/* Tags come back pre-flattened as [{ id, tag_name }] from the RPC */}
+              {listing.tags.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {listing.tags.map((tag) => (
+                    <span
+                      key={tag.id}
+                      className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full font-medium"
+                    >
+                      {tag.tag_name}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              <div className="text-sm text-gray-500 pt-4 border-t mt-auto">
+                <p>📍 {listing.listing_address || "Location unavailable"}</p>
+                {(listing.open_time || listing.close_time) && (
+                  <p>
+                    🕒 {listing.open_time} - {listing.close_time}
+                  </p>
+                )}
+              </div>
             </div>
           </Link>
         ))}

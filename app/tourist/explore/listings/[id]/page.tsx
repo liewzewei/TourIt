@@ -2,6 +2,7 @@ import createClient from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import { after } from "next/server";
 import AddToItineraryButton from "./AddToItineraryButton";
+import ListingImageCarousel from "@/components/listing-image-carousel";
 
 // Notice params is now a Promise
 export default async function ListingDetailsPage({ 
@@ -21,9 +22,11 @@ export default async function ListingDetailsPage({
       *,
       listing_tags (
         tags (id, tag_name)
-      )
+      ),
+      listing_images (id, image_path, display_order)
     `)
     .eq("id", resolvedParams.id) // Use the awaited id here
+    .order("display_order", { referencedTable: "listing_images" })
     .single();
 
   if (error || !listing) {
@@ -52,11 +55,20 @@ export default async function ListingDetailsPage({
 
   // Render the full details page
   return (
-    <main className="max-w-4xl mx-auto p-8">
+    <main className="w-full max-w-4xl mx-auto p-8">
       <div className="flex justify-between items-start mb-6">
         <h1 className="text-4xl font-bold">{listing.listing_name}</h1>
         <AddToItineraryButton listingId={listing.id} />
       </div>
+
+      {listing.listing_images?.length > 0 && (
+        <div className="mb-6">
+          <ListingImageCarousel
+            images={listing.listing_images}
+            listingName={listing.listing_name}
+          />
+        </div>
+      )}
 
       <div className="bg-white p-6 rounded-lg shadow-sm border mb-6">
         <p className="text-gray-700 whitespace-pre-wrap">{listing.listing_description}</p>
