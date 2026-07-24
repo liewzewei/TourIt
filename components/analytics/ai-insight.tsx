@@ -28,9 +28,9 @@ export default async function AiInsight(props: AiInsightProps) {
   const text = await generateInsight(props);
   if (!text) return null;
   return (
-    <div className="mb-6 flex items-start gap-3 rounded-lg border border-blue-100 bg-blue-50/60 p-4">
-      <Sparkle className="mt-0.5 size-4 shrink-0 text-blue-500" />
-      <p className="text-sm text-gray-700">{text}</p>
+    <div className="mb-6 flex items-start gap-3 rounded-lg border border-accent bg-accent/60 p-4">
+      <Sparkle className="mt-0.5 size-4 shrink-0 text-primary" />
+      <p className="text-sm text-foreground">{text}</p>
     </div>
   );
 }
@@ -90,9 +90,9 @@ function buildPrompt(p: AiInsightProps): string {
 
 export function AiInsightSkeleton() {
   return (
-    <div className="mb-6 flex items-center gap-3 rounded-lg border border-blue-100 bg-blue-50/60 p-4">
-      <Sparkle className="size-4 shrink-0 animate-pulse text-blue-300" />
-      <div className="h-4 w-2/3 animate-pulse rounded bg-blue-100" />
+    <div className="mb-6 flex items-center gap-3 rounded-lg border border-accent bg-accent/60 p-4">
+      <Sparkle className="size-4 shrink-0 animate-pulse text-primary/50" />
+      <div className="h-4 w-2/3 animate-pulse rounded bg-accent" />
     </div>
   );
 }

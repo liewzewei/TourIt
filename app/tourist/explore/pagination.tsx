@@ -18,7 +18,7 @@ export default function Pagination({
   const hasNext = currentPage < totalPages;
 
   const enabled =
-    "px-4 py-2 text-sm font-medium border rounded-md hover:bg-gray-50 transition";
+    "px-4 py-2 text-sm font-medium border rounded-md hover:bg-muted transition";
   const disabled =
     "px-4 py-2 text-sm font-medium border rounded-md opacity-40 cursor-not-allowed select-none";
 
@@ -37,7 +37,7 @@ export default function Pagination({
         </span>
       )}
 
-      <span className="text-sm text-gray-600">
+      <span className="text-sm text-muted-foreground">
         Page {currentPage} of {totalPages}
       </span>
 

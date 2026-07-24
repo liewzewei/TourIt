@@ -36,13 +36,13 @@ export default async function BusinessOwnerHomePage() {
         {listings?.map((listing) => (
           <div 
             key={listing.id}
-            className="border rounded-lg p-6 shadow-sm flex flex-col h-full bg-white"
+            className="border rounded-lg p-6 shadow-sm flex flex-col h-full bg-card"
           > 
             <h2 className="text-xl font-semibold mb-2">
               {listing.listing_name}
             </h2>
             
-            <p className="text-gray-600 mb-4 line-clamp-3 flex-grow">
+            <p className="text-muted-foreground mb-4 line-clamp-3 flex-grow">
               {listing.listing_description || "No description provided."}
             </p>
             
@@ -56,7 +56,7 @@ export default async function BusinessOwnerHomePage() {
                   return (
                     <span 
                       key={tag.id} 
-                      className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full font-medium"
+                      className="bg-accent text-accent-foreground text-xs px-2 py-1 rounded-full font-medium"
                     >
                       {tag.tag_name}
                     </span>
@@ -65,7 +65,7 @@ export default async function BusinessOwnerHomePage() {
               </div>
             )}
 
-            <div className="text-sm text-gray-500 pt-4 border-t mt-auto">
+            <div className="text-sm text-muted-foreground pt-4 border-t mt-auto">
               <p>📍 {listing.listing_address || "Location unavailable"}</p>
               {(listing.open_time || listing.close_time) && (
                 <p>
@@ -77,7 +77,7 @@ export default async function BusinessOwnerHomePage() {
         ))}
 
         {listings?.length === 0 && (
-          <p className="text-gray-500 col-span-full">You have no listings yet.</p>
+          <p className="text-muted-foreground col-span-full">You have no listings yet.</p>
         )}
       </div>
     </main>

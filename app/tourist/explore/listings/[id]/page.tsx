@@ -70,11 +70,11 @@ export default async function ListingDetailsPage({
         </div>
       )}
 
-      <div className="bg-white p-6 rounded-lg shadow-sm border mb-6">
-        <p className="text-gray-700 whitespace-pre-wrap">{listing.listing_description}</p>
+      <div className="bg-card p-6 rounded-lg shadow-sm border mb-6">
+        <p className="text-foreground whitespace-pre-wrap">{listing.listing_description}</p>
       </div>
 
-      <div className="bg-gray-50 p-6 rounded-lg border">
+      <div className="bg-muted p-6 rounded-lg border">
         <h3 className="font-semibold mb-2">Details</h3>
         <p>📍 <span className="font-semibold">Address:</span> {listing.listing_address || "No address provided"}</p>
         {listing.is_24_hours ? (

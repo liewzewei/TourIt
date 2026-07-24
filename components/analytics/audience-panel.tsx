@@ -13,8 +13,8 @@ export default function AudiencePanel({
   scopeLabel: string;
 }) {
   return (
-    <section className="rounded-lg border bg-white p-6">
-      <h2 className="mb-4 text-sm font-medium text-gray-500">
+    <section className="rounded-lg border bg-card p-6">
+      <h2 className="mb-4 text-sm font-medium text-muted-foreground">
         Audience interests
       </h2>
       {data.tags === null ? (
@@ -24,7 +24,7 @@ export default function AudiencePanel({
           scopeLabel={scopeLabel}
         />
       ) : data.tags.length === 0 ? (
-        <p className="text-sm text-gray-400">
+        <p className="text-sm text-muted-foreground">
           Your savers haven&apos;t shared any interests yet.
         </p>
       ) : (
@@ -46,17 +46,17 @@ function LockedState({
   const pct = Math.min(100, Math.round((saverCount / threshold) * 100));
   return (
     <div>
-      <p className="text-sm text-gray-600">
+      <p className="text-sm text-muted-foreground">
         🔒 Audience insights unlock once {threshold} travellers have saved{" "}
         {scopeLabel}.
       </p>
-      <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-gray-100">
-        <div className="h-full rounded-full bg-blue-500" style={{ width: `${pct}%` }} />
+      <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-muted">
+        <div className="h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
       </div>
-      <p className="mt-1.5 text-xs font-medium text-gray-500">
+      <p className="mt-1.5 text-xs font-medium text-muted-foreground">
         {saverCount} of {threshold} so far
       </p>
-      <p className="mt-3 text-xs text-gray-400">
+      <p className="mt-3 text-xs text-muted-foreground">
         We only show an aggregated interest profile once enough travellers are
         included, so no individual can be identified.
       </p>
@@ -73,7 +73,7 @@ function UnlockedState({
 }) {
   return (
     <div>
-      <p className="mb-4 text-sm text-gray-500">
+      <p className="mb-4 text-sm text-muted-foreground">
         Based on {saverCount} interested travellers.
       </p>
       <ul className="space-y-3">
@@ -83,10 +83,10 @@ function UnlockedState({
             <li key={t.tag_name}>
               <div className="mb-1 flex items-baseline justify-between gap-2 text-sm">
                 <span className="font-medium">{t.tag_name}</span>
-                <span className="tabular-nums text-gray-500">{pct}%</span>
+                <span className="tabular-nums text-muted-foreground">{pct}%</span>
               </div>
-              <div className="h-2 w-full overflow-hidden rounded-full bg-gray-100">
-                <div className="h-full rounded-full bg-blue-500" style={{ width: `${pct}%` }} />
+              <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                <div className="h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
               </div>
             </li>
           );

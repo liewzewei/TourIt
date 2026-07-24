@@ -161,7 +161,7 @@ export default function AddToItineraryButton({ listingId }: { listingId: string 
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="bg-black text-white px-4 py-2 rounded hover:bg-neutral-800 transition"
+        className="bg-primary text-primary-foreground px-4 py-2 rounded hover:bg-primary/90 transition"
       >
         Add to Itinerary
       </button>
@@ -169,7 +169,7 @@ export default function AddToItineraryButton({ listingId }: { listingId: string 
       {/* Simple Modal Overlay */}
       {isOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg w-full max-w-md">
+          <div className="bg-popover p-6 rounded-lg w-full max-w-md">
             <h2 className="text-xl font-bold mb-4">Schedule Visit</h2>
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -179,7 +179,7 @@ export default function AddToItineraryButton({ listingId }: { listingId: string 
                 <select
                   value={selectedItineraryId}
                   onChange={(e) => setSelectedItineraryId(e.target.value)}
-                  className="w-full border rounded p-2 bg-white"
+                  className="w-full border rounded p-2 bg-background"
                 >
                   {/* Default placeholder option */}
                   <option value="" disabled>Select one...</option>
@@ -203,13 +203,13 @@ export default function AddToItineraryButton({ listingId }: { listingId: string 
                   type="checkbox"
                   checked={letAiDecide}
                   onChange={(e) => setLetAiDecide(e.target.checked)}
-                  className="h-4 w-4 rounded border-gray-300"
+                  className="h-4 w-4 rounded border-input"
                 />
                 Add now, let AI decide the timings
               </label>
 
               {letAiDecide ? (
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-muted-foreground">
                   This stop will be added without a time. The AI scheduler slots it in
                   later based on opening hours and your other activities.
                 </p>
@@ -261,14 +261,14 @@ export default function AddToItineraryButton({ listingId }: { listingId: string 
                 <button
                   type="button"
                   onClick={() => setIsOpen(false)}
-                  className="px-4 py-2 border rounded hover:bg-gray-50"
+                  className="px-4 py-2 border rounded hover:bg-muted"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={rangeInvalid}
-                  className="px-4 py-2 bg-black text-white rounded hover:bg-neutral-800 transition disabled:opacity-50"
+                  className="px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90 transition disabled:opacity-50"
                 >
                   Save Schedule
                 </button>

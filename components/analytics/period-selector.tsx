@@ -21,7 +21,7 @@ export default function PeriodSelector({
             href={`${basePath}?period=${p}`}
             aria-current={active ? "page" : undefined}
             className={`rounded px-3 py-1 text-sm transition ${
-              active ? "bg-black text-white" : "text-gray-600 hover:bg-gray-100"
+              active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"
             }`}
           >
             {PERIOD_LABELS[p]}

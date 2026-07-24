@@ -108,7 +108,7 @@ export default async function ExplorePage({
             {/* Fixed aspect box reserves space before load (no layout shift).
                 A missing image falls back to a neutral icon rather than a
                 committed placeholder asset. */}
-            <div className="relative aspect-video bg-gray-100">
+            <div className="relative aspect-video bg-muted">
               {listing.preview_image_path ? (
                 <Image
                   src={getListingImageUrl(listing.preview_image_path)}
@@ -118,7 +118,7 @@ export default async function ExplorePage({
                   className="object-cover"
                 />
               ) : (
-                <div className="flex h-full items-center justify-center text-gray-300">
+                <div className="flex h-full items-center justify-center text-muted-foreground/60">
                   <ImageIcon className="h-10 w-10" aria-hidden />
                 </div>
               )}
@@ -129,7 +129,7 @@ export default async function ExplorePage({
                 {listing.listing_name}
               </h2>
 
-              <p className="text-gray-600 mb-4 line-clamp-3 flex-grow">
+              <p className="text-muted-foreground mb-4 line-clamp-3 flex-grow">
                 {listing.listing_description || "No description provided."}
               </p>
 
@@ -139,7 +139,7 @@ export default async function ExplorePage({
                   {listing.tags.map((tag) => (
                     <span
                       key={tag.id}
-                      className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full font-medium"
+                      className="bg-accent text-accent-foreground text-xs px-2 py-1 rounded-full font-medium"
                     >
                       {tag.tag_name}
                     </span>
@@ -147,7 +147,7 @@ export default async function ExplorePage({
                 </div>
               )}
 
-              <div className="text-sm text-gray-500 pt-4 border-t mt-auto">
+              <div className="text-sm text-muted-foreground pt-4 border-t mt-auto">
                 <p>📍 {listing.listing_address || "Location unavailable"}</p>
                 {(listing.open_time || listing.close_time) && (
                   <p>
@@ -160,7 +160,7 @@ export default async function ExplorePage({
         ))}
 
         {listings.length === 0 && (
-          <p className="text-gray-500 col-span-full">
+          <p className="text-muted-foreground col-span-full">
             {hasActiveFilters
               ? "No listings match your filters."
               : "No listings found."}

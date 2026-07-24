@@ -22,10 +22,10 @@ export default function ListingTable({
   );
 
   return (
-    <div className="overflow-x-auto rounded-lg border bg-white">
+    <div className="overflow-x-auto rounded-lg border bg-card">
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b text-gray-500">
+          <tr className="border-b text-muted-foreground">
             <th scope="col" className="px-4 py-3 text-left font-medium">
               Listing
             </th>
@@ -42,11 +42,11 @@ export default function ListingTable({
         </thead>
         <tbody>
           {sorted.map((r) => (
-            <tr key={r.listing_id} className="border-b last:border-0 hover:bg-gray-50">
+            <tr key={r.listing_id} className="border-b last:border-0 hover:bg-muted">
               <td className="px-4 py-3">
                 <Link
                   href={`/business-owner/analytics/${r.listing_id}`}
-                  className="font-medium text-blue-600 hover:underline"
+                  className="font-medium text-primary hover:underline"
                 >
                   {r.listing_name}
                 </Link>
