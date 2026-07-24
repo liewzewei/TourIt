@@ -48,6 +48,11 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  /* Elevation is theme-dependent -- a black shadow is invisible on a dark
+     surface -- so the utilities map to variables re-declared per mode below. */
+  --shadow-raised: var(--elevation-raised);
+  --shadow-lifted: var(--elevation-lifted);
+  --shadow-overlay: var(--elevation-overlay);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -55,6 +60,34 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+/* Motion. These are static values, so this block is deliberately NOT `inline`:
+   Tailwind emits them at :root, which is what lets the interaction recipes and
+   raw CSS reference them by name. Snappiness comes from the curve more than the
+   distance -- `--ease-out-quart` leaves fast and settles, and `--ease-out-back`
+   overshoots a little, which is what makes a press feel mechanical.
+
+   Overriding the two `--default-transition-*` keys re-times every bare
+   `transition` / `transition-colors` already in the codebase, so existing
+   components inherit the new feel without being touched.
+
+   `static` because Tailwind only emits theme variables it sees used, and these
+   are referenced from hand-written CSS (the interaction recipes) rather than
+   from a utility class -- without it the unused ones silently never reach
+   :root and `var()` calls against them resolve to nothing. */
+@theme static {
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-out-back: cubic-bezier(0.34, 1.35, 0.64, 1);
+  --ease-in-out-smooth: cubic-bezier(0.65, 0, 0.35, 1);
+
+  --duration-instant: 90ms;
+  --duration-fast: 140ms;
+  --duration-base: 220ms;
+  --duration-slow: 340ms;
+
+  --default-transition-duration: var(--duration-fast);
+  --default-transition-timing-function: var(--ease-out-quart);
 }
 
 /* Brand hue is 200 (teal). Neutrals carry a trace of it rather than being pure
@@ -99,6 +132,26 @@
   --sidebar-ring: oklch(0.62 0.10 200);
   --background: oklch(0.985 0.004 200);
   --foreground: oklch(0.21 0.02 220);
+
+  /* Shadows are tinted with the foreground hue rather than pure black, so they
+     sit in the same colour family as the surfaces they fall on. */
+  --elevation-raised:
+    0 1px 2px -1px oklch(0.21 0.02 220 / 0.10),
+    0 1px 3px 0 oklch(0.21 0.02 220 / 0.07);
+  --elevation-lifted:
+    0 10px 20px -6px oklch(0.21 0.02 220 / 0.18),
+    0 4px 8px -4px oklch(0.21 0.02 220 / 0.12);
+  --elevation-overlay:
+    0 16px 40px -12px oklch(0.21 0.02 220 / 0.24),
+    0 4px 12px -6px oklch(0.21 0.02 220 / 0.14);
+
+  /* The single place the hover/press geometry is defined. Cards and buttons
+     both read these, so the whole app's "lift" is one edit -- including
+     flipping --lift-scale below 1 if rising should read as receding instead. */
+  --lift-y: -6px;
+  --lift-scale: 1.02;
+  --press-y: 1px;
+  --press-scale: 0.99;
 }
 
 /* Dark is a separate set of steps, not an inversion of light: the chart slots
@@ -140,6 +193,19 @@
   --sidebar-accent-foreground: oklch(0.92 0.03 200);
   --sidebar-border: oklch(1 0 0 / 12%);
   --sidebar-ring: oklch(0.60 0.09 200);
+
+  /* Near-black at a higher alpha: on a dark surface a tinted shadow reads as
+     haze rather than depth, so these go darker and denser than their light
+     counterparts instead of being the same values reused. */
+  --elevation-raised:
+    0 1px 2px -1px oklch(0 0 0 / 0.60),
+    0 1px 3px 0 oklch(0 0 0 / 0.45);
+  --elevation-lifted:
+    0 10px 20px -6px oklch(0 0 0 / 0.70),
+    0 4px 8px -4px oklch(0 0 0 / 0.50);
+  --elevation-overlay:
+    0 16px 40px -12px oklch(0 0 0 / 0.80),
+    0 4px 12px -6px oklch(0 0 0 / 0.60);
 }
 
 @layer base {
