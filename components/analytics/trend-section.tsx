@@ -12,19 +12,19 @@ export default function TrendSection({
   const noActivity = points.every((p) => p.views === 0 && p.saves === 0);
 
   return (
-    <section className="rounded-lg border bg-white p-6">
+    <section className="rounded-lg border bg-card p-6">
       <div className="mb-4 flex items-center justify-between gap-4">
-        <h2 className="text-sm font-medium text-gray-500">
+        <h2 className="text-sm font-medium text-muted-foreground">
           Views &amp; saves over time
         </h2>
-        <div className="flex gap-4 text-xs text-gray-500">
+        <div className="flex gap-4 text-xs text-muted-foreground">
           <LegendDot className="bg-blue-500" label="Views" />
           <LegendDot className="bg-emerald-500" label="Saves" />
         </div>
       </div>
       <TrendChart points={points} className="h-auto w-full" />
       {noActivity && (
-        <p className="mt-3 text-sm text-gray-400">
+        <p className="mt-3 text-sm text-muted-foreground">
           No visits or saves recorded in this period yet.
         </p>
       )}

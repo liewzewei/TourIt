@@ -126,13 +126,13 @@ export default function QuizClient({ tags, userId }: { tags: Tag[], userId: stri
 
   return (
     <div className="flex flex-col items-center overflow-x-hidden">
-      <div className="mb-8 text-sm text-gray-500 font-medium">
+      <div className="mb-8 text-sm text-muted-foreground font-medium">
         Tag {currentIndex + 1} of {tags.length}
       </div>
 
       <div className="relative w-full max-w-sm h-80">
         <Card 
-          className="absolute inset-0 flex flex-col items-center justify-center p-8 shadow-lg touch-none select-none border-2 bg-white"
+          className="absolute inset-0 flex flex-col items-center justify-center p-8 shadow-lg touch-none select-none border-2"
           style={cardStyle}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
@@ -144,14 +144,14 @@ export default function QuizClient({ tags, userId }: { tags: Tag[], userId: stri
         >
           {/* Visual Stamps that fade in when dragging */}
           <div 
-            className="absolute top-6 left-6 text-green-500 font-bold border-4 border-green-500 rounded-md px-2 py-1 text-xl rotate-[-20deg]"
+            className="absolute top-6 left-6 text-success font-bold border-4 border-success rounded-md px-2 py-1 text-xl rotate-[-20deg]"
             style={{ opacity: dragOffset > 20 ? (dragOffset / 100) : 0 }}
           >
             INTERESTED
           </div>
           
           <div 
-            className="absolute top-6 right-6 text-red-500 font-bold border-4 border-red-500 rounded-md px-2 py-1 text-xl rotate-[20deg]"
+            className="absolute top-6 right-6 text-destructive font-bold border-4 border-destructive rounded-md px-2 py-1 text-xl rotate-[20deg]"
             style={{ opacity: dragOffset < -20 ? (Math.abs(dragOffset) / 100) : 0 }}
           >
             NOPE
@@ -162,12 +162,12 @@ export default function QuizClient({ tags, userId }: { tags: Tag[], userId: stri
           </h2>
           
           {currentTag.category && (
-            <span className="text-sm font-medium text-blue-600 bg-blue-50 px-3 py-1 rounded-full mb-4 pointer-events-none">
+            <span className="text-sm font-medium text-primary bg-accent px-3 py-1 rounded-full mb-4 pointer-events-none">
               {currentTag.category}
             </span>
           )}
           
-          <p className="text-gray-400 mt-6 text-sm text-center pointer-events-none">
+          <p className="text-muted-foreground mt-6 text-sm text-center pointer-events-none">
             Swipe Right for interested<br/>Swipe Left to skip
           </p>
         </Card>
@@ -180,7 +180,7 @@ export default function QuizClient({ tags, userId }: { tags: Tag[], userId: stri
           size="lg" 
           onClick={handleSkip}
           disabled={isSubmitting}
-          className="w-32 h-14 rounded-full text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600 shadow-sm transition-all hover:scale-105"
+          className="w-32 h-14 rounded-full text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive shadow-sm transition-all hover:scale-105"
         >
           Skip
         </Button>
@@ -189,7 +189,7 @@ export default function QuizClient({ tags, userId }: { tags: Tag[], userId: stri
           size="lg" 
           onClick={handleInterested}
           disabled={isSubmitting}
-          className="w-32 h-14 rounded-full bg-black hover:bg-gray-800 text-white shadow-md transition-all hover:scale-105"
+          className="w-32 h-14 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-md transition-all hover:scale-105"
         >
           {isSubmitting ? "Saving..." : "Interested"}
         </Button>

@@ -30,7 +30,7 @@ function CoverImage({
   priority: boolean;
 }) {
   return (
-    <div className="relative aspect-video overflow-hidden rounded-lg border bg-gray-100">
+    <div className="relative aspect-video overflow-hidden rounded-lg border bg-muted">
       <Image
         src={getListingImageUrl(image.image_path)}
         alt={alt}
@@ -107,12 +107,12 @@ export default function ListingImageCarousel({
               aria-current={index === current}
               className={cn(
                 "h-2 w-2 rounded-full transition-colors",
-                index === current ? "bg-gray-800" : "bg-gray-300 hover:bg-gray-400",
+                index === current ? "bg-foreground" : "bg-muted-foreground/40 hover:bg-muted-foreground/70",
               )}
             />
           ))}
         </div>
-        <span className="text-sm text-gray-500 tabular-nums">
+        <span className="text-sm text-muted-foreground tabular-nums">
           {current + 1} / {images.length}
         </span>
       </div>

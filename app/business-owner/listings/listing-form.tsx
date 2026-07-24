@@ -185,18 +185,18 @@ export default function ListingForm({ availableTags }: { availableTags: Tag[] })
 
       <div>
         <label htmlFor="listing_name" className="block text-sm font-medium">Listing Name *</label>
-        <input type="text" id="listing_name" name="listing_name" required className="mt-1 block w-full rounded-md border border-gray-300 p-2" />
+        <input type="text" id="listing_name" name="listing_name" required className="mt-1 block w-full rounded-md border border-input p-2" />
       </div>
 
       <div>
         <label htmlFor="listing_description" className="block text-sm font-medium">Description</label>
         <textarea id="listing_description" name="listing_description" 
-        placeholder="Describe your business -- what makes it special, what do you offer, who is it for? (100-200 words)" className="mt-1 block w-full rounded-md border border-gray-300 p-2" />
+        placeholder="Describe your business -- what makes it special, what do you offer, who is it for? (100-200 words)" className="mt-1 block w-full rounded-md border border-input p-2" />
       </div>
 
       <div>
         <label htmlFor="listing_address" className="block text-sm font-medium">Address</label>
-        <input type="text" id="listing_address" name="listing_address" className="mt-1 block w-full rounded-md border border-gray-300 p-2" />
+        <input type="text" id="listing_address" name="listing_address" className="mt-1 block w-full rounded-md border border-input p-2" />
       </div>
 
       <div className="space-y-2">
@@ -213,7 +213,7 @@ export default function ListingForm({ availableTags }: { availableTags: Tag[] })
                 setCloseTime("");
               }
             }}
-            className="h-4 w-4 rounded border-gray-300"
+            className="h-4 w-4 rounded border-input"
           />
           Open 24 hours
         </label>
@@ -230,7 +230,7 @@ export default function ListingForm({ availableTags }: { availableTags: Tag[] })
               disabled={is24Hours}
               required={!is24Hours}
               aria-invalid={hoursRangeInvalid}
-              className="mt-1 block w-full rounded-md border border-gray-300 p-2 disabled:cursor-not-allowed disabled:bg-gray-100"
+              className="mt-1 block w-full rounded-md border border-input p-2 disabled:cursor-not-allowed disabled:bg-muted"
             />
           </div>
           <div>
@@ -244,7 +244,7 @@ export default function ListingForm({ availableTags }: { availableTags: Tag[] })
               disabled={is24Hours}
               required={!is24Hours}
               aria-invalid={hoursRangeInvalid}
-              className="mt-1 block w-full rounded-md border border-gray-300 p-2 disabled:cursor-not-allowed disabled:bg-gray-100"
+              className="mt-1 block w-full rounded-md border border-input p-2 disabled:cursor-not-allowed disabled:bg-muted"
             />
           </div>
         </div>
@@ -261,31 +261,31 @@ export default function ListingForm({ availableTags }: { availableTags: Tag[] })
         {/* Selected Badges */}
         <div className="flex flex-wrap gap-2 mb-1">
           {selectedTags.map((tag) => (
-            <span key={tag.id} className="flex items-center gap-1 px-3 py-1 bg-black text-white rounded-full text-xs font-medium">
+            <span key={tag.id} className="flex items-center gap-1 px-3 py-1 bg-primary text-primary-foreground rounded-full text-xs font-medium">
               {tag.tag_name}
-              <button type="button" onClick={() => toggleTag(tag)} className="hover:text-gray-300"><X className="w-3 h-3" /></button>
+              <button type="button" onClick={() => toggleTag(tag)} className="hover:text-muted-foreground/60"><X className="w-3 h-3" /></button>
             </span>
           ))}
         </div>
 
         {/* Dropdown Button */}
         <div className="relative">
-          <button type="button" onClick={() => setIsDropdownOpen(!isDropdownOpen)} className="w-full flex justify-between items-center text-left px-3 py-2 border border-gray-300 rounded-md bg-white text-sm">
+          <button type="button" onClick={() => setIsDropdownOpen(!isDropdownOpen)} className="w-full flex justify-between items-center text-left px-3 py-2 border border-input rounded-md bg-background text-sm">
             <span>{selectedTags.length === 0 ? "Select tags..." : `${selectedTags.length} tags selected`}</span>
-            <ChevronDown className="w-4 h-4 text-gray-500" />
+            <ChevronDown className="w-4 h-4 text-muted-foreground" />
           </button>
 
           {/* Dropdown Menu */}
           {isDropdownOpen && (
-            <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
+            <div className="absolute z-10 w-full mt-1 bg-popover border rounded-md shadow-lg max-h-60 overflow-y-auto">
               {availableTags.map((tag) => {
                 const isSelected = selectedTags.some((t) => t.id === tag.id);
                 const isMaxedOut = selectedTags.length >= 5 && !isSelected;
                 return (
-                  <div key={tag.id} onClick={() => !isMaxedOut && toggleTag(tag)} className={`flex items-center justify-between px-4 py-2 cursor-pointer text-sm border-b last:border-0 ${isSelected ? "bg-gray-50 font-medium" : "hover:bg-gray-50"} ${isMaxedOut ? "opacity-50 cursor-not-allowed" : ""}`}>
+                  <div key={tag.id} onClick={() => !isMaxedOut && toggleTag(tag)} className={`flex items-center justify-between px-4 py-2 cursor-pointer text-sm border-b last:border-0 ${isSelected ? "bg-muted font-medium" : "hover:bg-muted"} ${isMaxedOut ? "opacity-50 cursor-not-allowed" : ""}`}>
                     <div className="flex flex-col">
                       <span>{tag.tag_name}</span>
-                      <span className="text-xs text-gray-500">{tag.category}</span>
+                      <span className="text-xs text-muted-foreground">{tag.category}</span>
                     </div>
                     {isSelected && <Check className="w-4 h-4 text-black" />}
                   </div>
@@ -301,7 +301,7 @@ export default function ListingForm({ availableTags }: { availableTags: Tag[] })
         <label htmlFor="listing_images" className="block text-sm font-medium">
           Images (optional, up to {MAX_IMAGES_PER_LISTING})
         </label>
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-muted-foreground">
           JPG or PNG, up to {MAX_IMAGE_BYTES / (1024 * 1024)} MB each. The first image is used as the cover.
         </p>
 
@@ -319,11 +319,11 @@ export default function ListingForm({ availableTags }: { availableTags: Tag[] })
           multiple
           onChange={handleImagesSelected}
           disabled={isUploading || images.length >= MAX_IMAGES_PER_LISTING}
-          className="mt-1 block w-full text-sm file:mr-3 file:rounded-md file:border-0 file:bg-black file:px-3 file:py-1.5 file:text-sm file:text-white hover:file:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-50"
+          className="mt-1 block w-full text-sm file:mr-3 file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-sm file:text-primary-foreground hover:file:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
         />
 
         {images.length >= MAX_IMAGES_PER_LISTING && (
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-muted-foreground">
             Maximum of {MAX_IMAGES_PER_LISTING} images reached. Remove one to add another.
           </p>
         )}
@@ -333,7 +333,7 @@ export default function ListingForm({ availableTags }: { availableTags: Tag[] })
             {images.map((image, index) => (
               <div
                 key={image.previewUrl}
-                className="relative aspect-video overflow-hidden rounded-md border bg-gray-100"
+                className="relative aspect-video overflow-hidden rounded-md border bg-muted"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element --
                     these are local blob: previews; next/image can't optimize
@@ -344,7 +344,7 @@ export default function ListingForm({ availableTags }: { availableTags: Tag[] })
                   className="h-full w-full object-cover"
                 />
                 {index === 0 && (
-                  <span className="absolute left-1 top-1 rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-medium text-white">
+                  <span className="absolute left-1 top-1 rounded bg-foreground/70 px-1.5 py-0.5 text-[10px] font-medium text-background">
                     Cover
                   </span>
                 )}
@@ -353,7 +353,7 @@ export default function ListingForm({ availableTags }: { availableTags: Tag[] })
                   onClick={() => removeImage(index)}
                   disabled={isUploading}
                   aria-label={`Remove ${image.file.name}`}
-                  className="absolute right-1 top-1 rounded-full bg-black/70 p-1 text-white hover:bg-black disabled:opacity-50"
+                  className="absolute right-1 top-1 rounded-full bg-foreground/70 p-1 text-background hover:bg-foreground disabled:opacity-50"
                 >
                   <X className="h-3 w-3" />
                 </button>
@@ -363,7 +363,7 @@ export default function ListingForm({ availableTags }: { availableTags: Tag[] })
         )}
       </div>
 
-      <button type="submit" disabled={isPending || isUploading || hoursRangeInvalid} className="w-full bg-black text-white rounded-md py-2 px-4 hover:bg-neutral-800 disabled:opacity-50 mt-4">
+      <button type="submit" disabled={isPending || isUploading || hoursRangeInvalid} className="w-full bg-primary text-primary-foreground rounded-md py-2 px-4 hover:bg-primary/90 disabled:opacity-50 mt-4">
         {isUploading ? "Uploading images..." : isPending ? "Creating..." : "Create Listing"}
       </button>
     </form>

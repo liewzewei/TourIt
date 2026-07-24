@@ -91,7 +91,7 @@ export default function LoginPage() {
         <div className="rounded-md border px-4 py-3">
           <p className="text-sm">
             <CircleAlert
-              className="me-3 -mt-0.5 inline-flex text-red-500"
+              className="me-3 -mt-0.5 inline-flex text-destructive"
               size={16}
               aria-hidden="true"
             />

@@ -179,23 +179,23 @@ export default function ItineraryViewPage({ params }: { params: Promise<{ id: st
     fetchItineraryData();
   }, [id, supabase]);
 
-  if (loading) return <div className="p-8 text-center text-gray-500 animate-pulse">Loading itinerary...</div>;
-  if (!itinerary) return <div className="p-8 text-center text-red-500">Itinerary not found.</div>;
+  if (loading) return <div className="p-8 text-center text-muted-foreground animate-pulse">Loading itinerary...</div>;
+  if (!itinerary) return <div className="p-8 text-center text-destructive">Itinerary not found.</div>;
 
   return (
     <main className="p-8 max-w-4xl mx-auto">
       <div className="flex items-center justify-between mb-8 border-b pb-4">
-        <h1 className="text-3xl font-bold text-gray-900">{itinerary.itinerary_name}</h1>
+        <h1 className="text-3xl font-bold text-foreground">{itinerary.itinerary_name}</h1>
         <div className="flex gap-4 items-center">
           <button
             onClick={() => setShowGenerateModal(true)}
-            className="bg-black text-white px-4 py-2 rounded-md hover:bg-gray-800 transition font-medium"
+            className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition font-medium"
           >
             ✨ Generate AI Schedule
           </button>
           <Link 
             href="/tourist/itineraries" 
-            className="text-sm text-blue-600 hover:underline"
+            className="text-sm text-primary hover:underline"
           >
             &larr; Back to all itineraries
           </Link>
@@ -203,11 +203,11 @@ export default function ItineraryViewPage({ params }: { params: Promise<{ id: st
       </div>
       
       {activities.length === 0 ? (
-        <div className="p-12 bg-gray-50 rounded-lg text-center border border-dashed">
-          <p className="text-gray-500 mb-6">No activities have been added to this itinerary yet.</p>
+        <div className="p-12 bg-muted rounded-lg text-center border border-dashed">
+          <p className="text-muted-foreground mb-6">No activities have been added to this itinerary yet.</p>
           <Link 
             href="/tourist/explore" 
-            className="inline-block bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition"
+            className="inline-block bg-primary text-primary-foreground px-6 py-2 rounded-md hover:bg-primary/90 transition"
           >
             Explore Listings to Add
           </Link>
@@ -217,16 +217,16 @@ export default function ItineraryViewPage({ params }: { params: Promise<{ id: st
           
           {/* Day Navigation Controls */}
           {uniqueDates.length > 1 && (
-            <div className="flex items-center justify-between bg-white p-3 rounded-md shadow-sm border">
+            <div className="flex items-center justify-between bg-card p-3 rounded-md shadow-sm border">
               <button 
                 disabled={currentDateIndex === 0}
                 onClick={() => setCurrentDateIndex(i => i - 1)}
-                className="px-4 py-2 text-sm font-medium rounded hover:bg-gray-100 disabled:opacity-50"
+                className="px-4 py-2 text-sm font-medium rounded hover:bg-muted disabled:opacity-50"
               >
                 &larr; Previous Day
               </button>
               
-              <span className="font-bold text-gray-700">
+              <span className="font-bold text-foreground">
                 {uniqueDates[currentDateIndex] !== "Unscheduled" 
                   ? new Date(uniqueDates[currentDateIndex]).toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric'})
                   : "Unscheduled"}
@@ -235,7 +235,7 @@ export default function ItineraryViewPage({ params }: { params: Promise<{ id: st
               <button 
                 disabled={currentDateIndex === uniqueDates.length - 1}
                 onClick={() => setCurrentDateIndex(i => i + 1)}
-                className="px-4 py-2 text-sm font-medium rounded hover:bg-gray-100 disabled:opacity-50"
+                className="px-4 py-2 text-sm font-medium rounded hover:bg-muted disabled:opacity-50"
               >
                 Next Day &rarr;
               </button>
@@ -247,29 +247,29 @@ export default function ItineraryViewPage({ params }: { params: Promise<{ id: st
             {currentActivities.map((activity) => (
               <div 
                 key={`${activity.itinerary_id}-${activity.listing_id}`}
-                className="relative pr-16 p-6 border rounded-lg bg-white shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4"
+                className="relative pr-16 p-6 border rounded-lg bg-card shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4"
               >
                 <div>
-                  <h3 className="text-xl font-semibold text-gray-800">
+                  <h3 className="text-xl font-semibold text-foreground">
                     {activity.listings?.listing_name}
                   </h3>
-                  <p className="text-gray-500 text-sm mt-1">
+                  <p className="text-muted-foreground text-sm mt-1">
                     📍 {activity.listings?.listing_address || 'No address provided'}
                   </p>
                 </div>
                 
                 <div className="flex items-center gap-4">
-                  <div className="text-left md:text-right bg-blue-50/50 p-4 rounded-md min-w-[200px]">
+                  <div className="text-left md:text-right bg-accent/40 p-4 rounded-md min-w-[200px]">
                     {activity.start_date ? (
-                      <p className="text-blue-900 font-medium">
+                      <p className="text-accent-foreground font-medium">
                         📅 {new Date(activity.start_date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric'})}
                       </p>
                     ) : (
-                      <p className="text-gray-500 text-sm italic">Date not set</p>
+                      <p className="text-muted-foreground text-sm italic">Date not set</p>
                     )}
                     
                     {activity.start_time && (
-                      <p className="text-blue-800 text-sm mt-2">
+                      <p className="text-accent-foreground text-sm mt-2">
                         🕒 {activity.start_time.slice(0, 5)} 
                         {activity.end_time ? ` - ${activity.end_time.slice(0, 5)}` : ''}
                       </p>
@@ -279,7 +279,7 @@ export default function ItineraryViewPage({ params }: { params: Promise<{ id: st
                   {/* Delete Button */}
                   <button
                     onClick={() => handleRemoveActivity(activity.listing_id)}
-                    className="p-3 text-neutral-400 hover:text-red-700 hover:bg-red-50 rounded-md transition"
+                    className="p-3 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-md transition"
                     title="Remove from itinerary"
                   >
                     🗑️
@@ -293,24 +293,24 @@ export default function ItineraryViewPage({ params }: { params: Promise<{ id: st
 
       {showGenerateModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-popover rounded-lg shadow-xl p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto">
             <h2 className="text-2xl font-bold mb-4">Generate AI Schedule</h2>
             
             {!generatedSchedule ? (
               <div className="space-y-4">
-                <p className="text-gray-600 text-sm">
+                <p className="text-muted-foreground text-sm">
                   Let AI optimize your unscheduled stops. It will consider your interests, opening hours, and travel time!
                 </p>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                  <label className="block text-sm font-medium text-foreground mb-1">Start Date</label>
                   <input type="date" value={genStartDate} onChange={e => setGenStartDate(e.target.value)} className="w-full border rounded p-2" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+                  <label className="block text-sm font-medium text-foreground mb-1">End Date</label>
                   <input type="date" value={genEndDate} onChange={e => setGenEndDate(e.target.value)} className="w-full border rounded p-2" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Remarks (optional)</label>
+                  <label className="block text-sm font-medium text-foreground mb-1">Remarks (optional)</label>
                   <textarea 
                     value={genRemarks} 
                     onChange={e => setGenRemarks(e.target.value)} 
@@ -321,11 +321,11 @@ export default function ItineraryViewPage({ params }: { params: Promise<{ id: st
                 </div>
                 
                 <div className="flex justify-end gap-3 mt-6">
-                  <button onClick={() => setShowGenerateModal(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded">Cancel</button>
+                  <button onClick={() => setShowGenerateModal(false)} className="px-4 py-2 text-muted-foreground hover:bg-muted rounded">Cancel</button>
                   <button 
                     onClick={handleGenerate}
                     disabled={isGenerating}
-                    className="px-4 py-2 bg-black text-white rounded hover:bg-gray-800 disabled:opacity-50 flex items-center gap-2"
+                    className="px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90 disabled:opacity-50 flex items-center gap-2"
                   >
                     {isGenerating ? "Generating..." : "Generate Schedule"}
                   </button>
@@ -333,27 +333,27 @@ export default function ItineraryViewPage({ params }: { params: Promise<{ id: st
               </div>
             ) : (
               <div>
-                <h3 className="text-lg font-semibold text-green-700 mb-3">✨ Generated Successfully!</h3>
+                <h3 className="text-lg font-semibold text-success mb-3">✨ Generated Successfully!</h3>
                 <div className="space-y-3 mb-6 max-h-60 overflow-y-auto pr-2">
                   {generatedSchedule.map((item, i) => (
-                    <div key={i} className="p-3 border rounded bg-gray-50 text-sm">
+                    <div key={i} className="p-3 border rounded bg-muted text-sm">
                       <p className="font-bold">{item.listing_name}</p>
-                      <p className="text-gray-600">📅 {item.scheduled_date} 🕒 {item.suggested_start_time} - {item.suggested_end_time}</p>
-                      <p className="text-gray-500 italic mt-1">&quot;{item.reason}&quot;</p>
+                      <p className="text-muted-foreground">📅 {item.scheduled_date} 🕒 {item.suggested_start_time} - {item.suggested_end_time}</p>
+                      <p className="text-muted-foreground italic mt-1">&quot;{item.reason}&quot;</p>
                     </div>
                   ))}
                 </div>
                 <div className="flex justify-end gap-3 mt-4">
                   <button 
                     onClick={() => { setGeneratedSchedule(null); setShowGenerateModal(false); }} 
-                    className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded transition"
+                    className="px-4 py-2 text-muted-foreground hover:bg-muted rounded transition"
                   >
                     Discard
                   </button>
                   <button 
                     onClick={handleSaveSchedule} 
                     disabled={isSaving}
-                    className="px-4 py-2 bg-black text-white font-medium rounded hover:bg-gray-800 transition disabled:opacity-50"
+                    className="px-4 py-2 bg-primary text-primary-foreground font-medium rounded hover:bg-primary/90 transition disabled:opacity-50"
                   >
                     {isSaving ? "Saving..." : "Save to Itinerary"}
                   </button>
