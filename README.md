@@ -49,6 +49,7 @@ The full walkthrough — env variables, seed accounts, remote development, and t
 | **[docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)** | Local + remote setup, environment variables, seed data, logging in, troubleshooting |
 | **[docs/TESTING.md](docs/TESTING.md)** | Unit + E2E tests, git hooks, the CI/CD pipeline |
 | **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** | Rendering model, project structure, database schema, routing, engineering practices |
+| **[docs/ISSUES.md](docs/ISSUES.md)** | Running log of what changed and why, known defects, and issues hit along the way |
 | **[CONTRIBUTING.md](CONTRIBUTING.md)** | Branch + commit conventions, pull requests, the migration→deploy flow |
 
 ## Scripts
