@@ -219,3 +219,38 @@
     @apply font-sans;
   }
 }
+
+/* Motion sensitivity is about movement, not decoration, so this works in two
+   layers rather than one blunt override.
+
+   First, flatten the geometry tokens. Anything built on the interaction
+   recipes then has nothing to move -- the element does not travel a shorter
+   distance, it stays put -- while its shadow and colour feedback survive
+   intact, so hover and press still read as interactive.
+
+   Second, a blanket reset for motion that never passes through those tokens:
+   the Radix enter/exit animations (zoom, slide, fade), the quiz card's inline
+   transform, and any transform utility applied directly. Instant is the right
+   outcome here -- these have no non-moving equivalent to fall back to.
+
+   Kept deliberately outside @layer base: layered rules lose to unlayered
+   component styles, and this has to win against everything. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --lift-y: 0px;
+    --lift-scale: 1;
+    --press-y: 0px;
+    --press-scale: 1;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+}
