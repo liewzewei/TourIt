@@ -63,7 +63,7 @@ export default function FilterBar({
     selectedTags.length > 0 || openFrom !== "" || openUntil !== "";
 
   return (
-    <div className="mb-8 p-4 border rounded-lg bg-gray-50/50">
+    <div className="mb-8 p-4 border rounded-lg bg-muted/50">
       <div className="flex flex-col md:flex-row gap-4 md:items-end">
         {/* Tag multi-select (match ANY) */}
         <div className="flex-1 flex flex-col gap-2">
@@ -74,13 +74,13 @@ export default function FilterBar({
               {selectedTags.map((tag) => (
                 <span
                   key={tag.id}
-                  className="flex items-center gap-1 px-3 py-1 bg-black text-white rounded-full text-xs font-medium"
+                  className="flex items-center gap-1 px-3 py-1 bg-primary text-primary-foreground rounded-full text-xs font-medium"
                 >
                   {tag.tag_name}
                   <button
                     type="button"
                     onClick={() => toggleTag(tag)}
-                    className="hover:text-gray-300"
+                    className="hover:text-muted-foreground/60"
                     aria-label={`Remove ${tag.tag_name}`}
                   >
                     <X className="w-3 h-3" />
@@ -94,18 +94,18 @@ export default function FilterBar({
             <button
               type="button"
               onClick={() => setIsDropdownOpen((o) => !o)}
-              className="w-full flex justify-between items-center text-left px-3 py-2 border border-gray-300 rounded-md bg-white text-sm"
+              className="w-full flex justify-between items-center text-left px-3 py-2 border border-input rounded-md bg-background text-sm"
             >
               <span>
                 {selectedTags.length === 0
                   ? "Select tags..."
                   : `${selectedTags.length} selected`}
               </span>
-              <ChevronDown className="w-4 h-4 text-gray-500" />
+              <ChevronDown className="w-4 h-4 text-muted-foreground" />
             </button>
 
             {isDropdownOpen && (
-              <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
+              <div className="absolute z-10 w-full mt-1 bg-popover border rounded-md shadow-lg max-h-60 overflow-y-auto">
                 {availableTags.map((tag) => {
                   const isSelected = selectedTags.some((t) => t.id === tag.id);
                   return (
@@ -113,12 +113,12 @@ export default function FilterBar({
                       key={tag.id}
                       onClick={() => toggleTag(tag)}
                       className={`flex items-center justify-between px-4 py-2 cursor-pointer text-sm border-b last:border-0 ${
-                        isSelected ? "bg-gray-50 font-medium" : "hover:bg-gray-50"
+                        isSelected ? "bg-muted font-medium" : "hover:bg-muted"
                       }`}
                     >
                       <div className="flex flex-col">
                         <span>{tag.tag_name}</span>
-                        <span className="text-xs text-gray-500">
+                        <span className="text-xs text-muted-foreground">
                           {tag.category}
                         </span>
                       </div>
@@ -141,7 +141,7 @@ export default function FilterBar({
             id="open_from"
             value={openFrom}
             onChange={(e) => setOpenFrom(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-md bg-white text-sm"
+            className="px-3 py-2 border border-input rounded-md bg-background text-sm"
           />
         </div>
         <div className="flex flex-col gap-2">
@@ -153,7 +153,7 @@ export default function FilterBar({
             id="open_until"
             value={openUntil}
             onChange={(e) => setOpenUntil(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-md bg-white text-sm"
+            className="px-3 py-2 border border-input rounded-md bg-background text-sm"
           />
         </div>
 
@@ -162,7 +162,7 @@ export default function FilterBar({
           <button
             type="button"
             onClick={applyFilters}
-            className="px-5 py-2 bg-black text-white rounded-md text-sm font-medium hover:bg-neutral-800 transition"
+            className="px-5 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition"
           >
             Apply
           </button>
@@ -170,7 +170,7 @@ export default function FilterBar({
             <button
               type="button"
               onClick={clearFilters}
-              className="px-5 py-2 border border-gray-300 rounded-md text-sm font-medium hover:bg-gray-100 transition"
+              className="px-5 py-2 border border-input rounded-md text-sm font-medium hover:bg-muted transition"
             >
               Clear
             </button>

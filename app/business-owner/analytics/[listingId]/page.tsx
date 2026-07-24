@@ -53,7 +53,7 @@ export default async function ListingAnalyticsPage({
     return (
       <main className="mx-auto max-w-6xl p-8">
         <BackLink period={period} />
-        <p className="mt-4 text-gray-500">
+        <p className="mt-4 text-muted-foreground">
           Failed to load analytics. Please try again.
         </p>
       </main>
@@ -157,7 +157,7 @@ function BackLink({ period }: { period: Period }) {
   return (
     <Link
       href={`/business-owner/analytics?period=${period}`}
-      className="text-sm text-gray-500 transition hover:text-gray-900"
+      className="text-sm text-muted-foreground transition hover:text-foreground"
     >
       ← All listings
     </Link>

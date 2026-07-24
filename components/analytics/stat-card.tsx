@@ -19,8 +19,8 @@ export default function StatCard({
   comparisonLabel,
 }: StatCardProps) {
   return (
-    <div className="rounded-lg border bg-white p-5">
-      <p className="text-sm text-gray-500">{label}</p>
+    <div className="rounded-lg border bg-card p-5">
+      <p className="text-sm text-muted-foreground">{label}</p>
       <p className="mt-1 text-3xl font-semibold tabular-nums">{value}</p>
       <div className="mt-2">
         <DeltaBadge delta={delta} comparisonLabel={comparisonLabel} />
@@ -43,11 +43,11 @@ function DeltaBadge({
   if (delta === null) {
     indicator = "New";
     context = `no data in ${comparisonLabel}`;
-    color = "text-emerald-600";
+    color = "text-success";
   } else if (delta === 0) {
     indicator = "No change";
     context = `vs ${comparisonLabel}`;
-    color = "text-gray-400";
+    color = "text-muted-foreground";
   } else {
     const up = delta > 0;
     const pct = Math.abs(delta * 100);
@@ -55,13 +55,13 @@ function DeltaBadge({
     const pctText = pct >= 10 ? pct.toFixed(0) : pct.toFixed(1);
     indicator = `${up ? "▲" : "▼"} ${pctText}%`;
     context = `vs ${comparisonLabel}`;
-    color = up ? "text-emerald-600" : "text-red-600";
+    color = up ? "text-success" : "text-destructive";
   }
 
   return (
     <div className="leading-snug">
       <span className={`text-xs font-medium ${color}`}>{indicator}</span>
-      <span className="block text-xs text-gray-400">{context}</span>
+      <span className="block text-xs text-muted-foreground">{context}</span>
     </div>
   );
 }

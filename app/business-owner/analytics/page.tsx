@@ -48,7 +48,7 @@ export default async function AnalyticsPage({
     return (
       <main className="mx-auto max-w-6xl p-8">
         <Header period={period} />
-        <p className="text-gray-500">
+        <p className="text-muted-foreground">
           Failed to load analytics. Please try again.
         </p>
       </main>
@@ -128,7 +128,7 @@ export default async function AnalyticsPage({
           </div>
 
           <section className="mb-8">
-            <h2 className="mb-3 text-sm font-medium text-gray-500">Per listing</h2>
+            <h2 className="mb-3 text-sm font-medium text-muted-foreground">Per listing</h2>
             <ListingTable rows={rows} totals={totals} />
           </section>
 
@@ -158,12 +158,12 @@ function Header({ period }: { period: Period }) {
 function EmptyNoListings() {
   return (
     <div className="rounded-lg border border-dashed p-12 text-center">
-      <p className="mb-4 text-gray-600">
+      <p className="mb-4 text-muted-foreground">
         You have no listings yet, so there&apos;s nothing to measure.
       </p>
       <Link
         href="/business-owner/listings"
-        className="inline-block rounded bg-black px-4 py-2 text-white transition hover:bg-neutral-800"
+        className="inline-block rounded bg-primary px-4 py-2 text-primary-foreground transition hover:bg-primary/90"
       >
         Create your first listing
       </Link>

@@ -91,8 +91,8 @@ export default function ItinerariesPage() {
       
       {/* Header and Form Section */}
       <div className="flex flex-col items-center text-center">
-        <h1 className="text-3xl font-bold text-neutral-900 mb-0">My Itineraries</h1>
-        <p className="text-neutral-500 mb-12 mt-1">Plan, organize, and manage your upcoming adventures.</p>
+        <h1 className="text-3xl font-bold text-foreground mb-0">My Itineraries</h1>
+        <p className="text-muted-foreground mb-12 mt-1">Plan, organize, and manage your upcoming adventures.</p>
         
         <form onSubmit={handleCreateItinerary} className="flex gap-4 w-full md:w-1/3 min-w-[420px]">
           <input 
@@ -100,12 +100,12 @@ export default function ItinerariesPage() {
             value={newItineraryName}
             onChange={(e) => setNewItineraryName(e.target.value)}
             placeholder="Name your next trip..." 
-            className="flex-1 px-4 py-2.5 border border-neutral-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black"
+            className="flex-1 px-4 py-2.5 border border-input rounded-md focus:outline-none focus:ring-1 focus:ring-ring"
             required
           />
           <button 
             type="submit"
-            className="bg-black text-white px-10 py-2.5 rounded-md hover:bg-neutral-800 transition whitespace-nowrap font-medium"
+            className="bg-primary text-primary-foreground px-10 py-2.5 rounded-md hover:bg-primary/90 transition whitespace-nowrap font-medium"
           >
             Create
           </button>
@@ -116,30 +116,30 @@ export default function ItinerariesPage() {
       <div className="mt-32">
         {loading ? (
           <div className="flex justify-center p-12">
-            <p className="text-neutral-500 animate-pulse">Loading your itineraries...</p>
+            <p className="text-muted-foreground animate-pulse">Loading your itineraries...</p>
           </div>
         ) : itineraries.length === 0 ? (
-          <div className="p-16 text-center border border-dashed border-neutral-300 rounded-lg">
-            <p className="text-neutral-500">You have not created any itineraries yet.</p>
+          <div className="p-16 text-center border border-dashed border-input rounded-lg">
+            <p className="text-muted-foreground">You have not created any itineraries yet.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-16">
             {itineraries.map((itinerary) => (
               <div 
                 key={itinerary.id} 
-                className="relative flex flex-col border border-neutral-200 rounded-lg p-6 bg-white hover:border-neutral-400 transition-colors h-48 shadow-sm group"
+                className="relative flex flex-col border border-border rounded-lg p-6 bg-card hover:border-ring transition-colors h-48 shadow-sm group"
               >
                 
                 {/* Title Container */}
                 <div className="mb-4 pr-12">
-                  <h2 className="text-lg font-semibold text-neutral-900 relative z-10 pointer-events-none line-clamp-2">
+                  <h2 className="text-lg font-semibold text-foreground relative z-10 pointer-events-none line-clamp-2">
                     {itinerary.itinerary_name}
                   </h2>
                   
                   {/* Delete Button */}
                   <button 
                     onClick={(e) => handleDeleteItinerary(e, itinerary.id)}
-                    className="absolute top-3 right-3 z-50 flex items-center justify-center p-1.5 text-neutral-400 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors"
+                    className="absolute top-3 right-3 z-50 flex items-center justify-center p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-md transition-colors"
                     aria-label="Delete Itinerary"
                   >
                     <span>🗑️</span>
@@ -148,7 +148,7 @@ export default function ItinerariesPage() {
 
                 <Link 
                   href={`/tourist/itineraries/${itinerary.id}`}
-                  className="mt-auto text-sm text-neutral-500 relative z-10 font-medium group-hover:text-black transition-colors"
+                  className="mt-auto text-sm text-muted-foreground relative z-10 font-medium group-hover:text-foreground transition-colors"
                 >
                   View schedule &rarr;
                 </Link>
