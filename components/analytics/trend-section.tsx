@@ -4,6 +4,10 @@ import type { OwnerTimeseriesPoint } from "@/lib/analytics";
 // The "Views & saves over time" panel: heading, legend, the trend chart, and a
 // muted note when the period had no activity. Shared by the overview and the
 // per-listing drill-down.
+//
+// The legend dots must stay on the same chart slots the chart itself draws with
+// (views = chart-1, saves = chart-2) — with two series and no direct labels, the
+// legend is the only thing carrying identity.
 export default function TrendSection({
   points,
 }: {
@@ -18,8 +22,8 @@ export default function TrendSection({
           Views &amp; saves over time
         </h2>
         <div className="flex gap-4 text-xs text-muted-foreground">
-          <LegendDot className="bg-blue-500" label="Views" />
-          <LegendDot className="bg-emerald-500" label="Saves" />
+          <LegendDot className="bg-chart-1" label="Views" />
+          <LegendDot className="bg-chart-2" label="Saves" />
         </div>
       </div>
       <TrendChart points={points} className="h-auto w-full" />
