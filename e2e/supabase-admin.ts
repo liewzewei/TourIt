@@ -16,3 +16,23 @@ export function createAdminClient(): SupabaseClient {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 }
+
+// Tear down a listing created during a test, plus everything hanging off it.
+// listing_images and listing_views are removed by ON DELETE CASCADE when the
+// listing row goes; listing_tags is NOT cascaded, so it is deleted explicitly.
+// Storage objects are never FK-linked, so the bucket files are removed first.
+export async function deleteListingCascade(listingId: string): Promise<void> {
+  const admin = createAdminClient();
+
+  const { data: objects } = await admin.storage
+    .from("listing-images")
+    .list(listingId);
+  if (objects && objects.length > 0) {
+    await admin.storage
+      .from("listing-images")
+      .remove(objects.map((object) => `${listingId}/${object.name}`));
+  }
+
+  await admin.from("listing_tags").delete().eq("listing_id", listingId);
+  await admin.from("listings").delete().eq("id", listingId);
+}
