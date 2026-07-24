@@ -86,7 +86,7 @@ Found during the pre-work audit on **2026-07-24**, against `main` @ `aa13406`. N
 
 | ID | Defect | Severity | Status |
 |---|---|---|---|
-| UI-01 | Whole app renders in Times New Roman — the Geist font is loaded but never applied | High — affects every page | Open, scheduled `fix/ui-font-token` |
+| UI-01 | Whole app renders in Times New Roman — the Geist font is loaded but never applied | High — affects every page | **Fixed** in `fix/ui-font-token` |
 | UI-02 | AI-schedule modal backdrop is fully opaque instead of a 50% scrim | Medium | Open, scheduled `refactor/ui-token-adoption` |
 | UI-03 | Business-owner home redirects unauthenticated users to a route that does not exist | Low — unreachable in practice | Open, scheduled `feat/owner-listing-images` |
 | UI-04 | Listing detail page queries tags it never renders | Low — dead query + inconsistent UI | Open, scheduled `feat/listing-detail-back-link` |
@@ -99,8 +99,8 @@ Found during the pre-work audit on **2026-07-24**, against `main` @ `aa13406`. N
 
 - **Description:** every page renders in Times New Roman. `app/layout.tsx` loads Geist via `next/font/google` and puts `--font-geist-sans` on `<html>`, and `app/globals.css` applies `font-sans` to `html` in a base layer, so the intent is clearly Geist.
 - **Root cause:** `app/globals.css` declares `--font-sans: var(--font-sans)` inside `@theme inline` — a self-reference. Because the theme entry is `inline`, Tailwind emits the utility as `font-family: var(--font-sans)` without defining that variable at `:root`, so the declaration is invalid at computed-value time and the element falls back to the browser default. The variable that *does* hold the font is `--font-geist-sans`, which nothing references. `--font-mono` is wired correctly, which is why the mistake reads as a find-and-replace slip.
-- **Verification:** `getComputedStyle(document.body).fontFamily` returns `"Times New Roman"` on the running dev server, while `--font-geist-sans` resolves to `"Geist", "Geist Fallback"`.
-- **Resolution:** open. Point `--font-sans` at `var(--font-geist-sans)`. Isolated into its own PR because the diff is one line but the visual effect is site-wide.
+- **Verification:** `getComputedStyle(document.body).fontFamily` returned `"Times New Roman"` on the running dev server, while `--font-geist-sans` resolved to `"Geist", "Geist Fallback"`.
+- **Resolution:** fixed in `fix/ui-font-token` by pointing `--font-sans` — and `--font-heading`, broken by the same chain — at `var(--font-geist-sans)`. Confirmed on the running app: `body`, `h1`, and both utilities now compute to `Geist, "Geist Fallback"`. Isolated into its own PR because the diff is three lines but the visual effect is site-wide.
 
 #### UI-02 — modal backdrop is opaque, not translucent
 
@@ -124,7 +124,7 @@ Found during the pre-work audit on **2026-07-24**, against `main` @ `aa13406`. N
 
 ### Changes
 
-#### Add the project issues log (PR #TBD, `docs/ui-issues-log`)
+#### Add the project issues log (PR #58, `docs/issues-log`)
 
 **Changed:** added this file, `docs/ISSUES.md`, and linked it from `README.md` and `CONTRIBUTING.md`. Seeded it with the UI/UX overhaul workstream and the eight defects found in the pre-work audit.
 
@@ -143,6 +143,31 @@ Found during the pre-work audit on **2026-07-24**, against `main` @ `aa13406`. N
 - **Description:** the log could sit at the repository root (`ISSUES.md`, maximum visibility) or in `docs/` alongside the other long-form documentation.
 - **Root cause:** the root already carries `README.md`, `CONTRIBUTING.md`, `AGENTS.md`, and `CLAUDE.md`; a fifth root-level document dilutes the "start here" signal, while `docs/` is already the established home for reference material and is indexed from both `README.md` and `CONTRIBUTING.md`.
 - **Resolution:** placed at `docs/ISSUES.md` and added to both indexes so it is reachable from the two entry points a reader is most likely to start from.
+
+#### Apply the Geist font (PR #59, `fix/ui-font-token`)
+
+**Changed:** pointed the `--font-sans` and `--font-heading` theme keys at `var(--font-geist-sans)`, the variable `next/font` actually defines on `<html>`. Resolves [UI-01](#ui-01--the-application-renders-in-the-browsers-default-serif).
+
+**Why:** the application was rendering in the browser's default serif on every page. Three lines of CSS, but the visual effect is site-wide, so it ships alone — bundled with anything else it would make that PR's diff impossible to review.
+
+**Tradeoffs / known limitations:**
+- Every page changes appearance. Nothing else changes, so any visual regression found later in this workstream can be bisected against this commit.
+- Text metrics change with the typeface: line lengths, wrapping, and truncation points shift slightly. The `line-clamp` counts on listing cards were left as they are; whether they still cut at a sensible point is a judgement to make once the cards are rebuilt.
+- `--font-mono` was already correct and is untouched, but no utility uses it, so nothing in the app renders in Geist Mono today.
+
+**Follow-ups:** none.
+
+##### Issues encountered
+
+**`font-heading` was broken by the same chain, and would have survived the obvious fix**
+- **Description:** the reported symptom was the body font. Fixing only `--font-sans` would have left `CardTitle` and `SheetTitle` — the two `font-heading` consumers — still rendering in serif, and the bug would have looked half-fixed.
+- **Root cause:** `--font-heading` was declared as `var(--font-sans)`. Inside `@theme inline` that is not a reference to the *resolved* theme value; Tailwind copies the text into the utility, so `.font-heading` emitted `font-family: var(--font-sans)` — a variable that, being inline, is never declared at `:root`. The indirection made the second broken key invisible unless the whole chain was followed.
+- **Resolution:** pointed `--font-heading` at `var(--font-geist-sans)` directly rather than at another inline key. Verified by measuring the computed `font-family` of a `.font-heading` element before and after: `"Times New Roman"` → `Geist, "Geist Fallback"`. A comment in `globals.css` now records why these keys must reference the `next/font` variables and not each other.
+
+**`font-mono` appeared broken but was a false positive**
+- **Description:** while measuring, a synthetic `.font-mono` element also computed to `"Times New Roman"`, suggesting a third broken key.
+- **Root cause:** no source file uses the `font-mono` utility, so Tailwind's JIT never generates the class and the test element simply inherited the body font. The `--font-mono` token itself was correctly declared all along.
+- **Resolution:** none needed. Recorded because the measurement technique — probing a class that may not exist — is quietly misleading, and the same trap applies to any future token audit.
 
 ### Follow-ups
 
