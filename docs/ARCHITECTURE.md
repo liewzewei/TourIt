@@ -65,7 +65,8 @@ TourIt/
 │   └── settings/profile/page.tsx
 ├── components/
 │   ├── nav.tsx, auth-buttons.tsx, user-avatar.tsx
-│   └── ui/                                # shadcn/ui primitives + toast + alert-dialog
+│   ├── listing-image-carousel.tsx         # swipeable gallery on the listing detail page
+│   └── ui/                                # shadcn/ui primitives + toast + alert-dialog + carousel
 ├── context/
 │   ├── user-context.tsx                   # auth user + profile (useUser)
 │   ├── toast-context.tsx                  # ToastProvider + useToast
@@ -75,6 +76,7 @@ TourIt/
 │   ├── supabase/{server.ts, client.ts, proxy.ts}
 │   ├── explore-params.ts                  # explore-feed URL params
 │   ├── itinerary-overlap.ts               # time-overlap validation
+│   ├── listing-images.ts                  # image limits/validation + public URL builder
 │   ├── time-constraints.ts                # operating-hours validation (mirrors the DB trigger)
 │   └── utils.ts                           # cn() helper
 ├── constants/common.ts                    # LOGIN_PATH, ROLE_HOME_PATH
@@ -83,9 +85,10 @@ TourIt/
 ├── supabase/
 │   ├── config.toml                        # local stack config
 │   ├── seed.sql                           # local-only seed data
-│   └── migrations/                        # timestamped SQL migrations
+│   ├── migrations/                        # timestamped SQL migrations
+│   └── tests/                             # pgTAP security suites (supabase test db)
 ├── __tests__/unit/                        # Jest unit tests
-├── e2e/                                   # Playwright (auth.setup.ts, golden-path.spec.ts, supabase-admin.ts)
+├── e2e/                                   # Playwright specs, auth setups, fixtures/, supabase-admin.ts
 ├── .husky/                                # git hooks (pre-commit, pre-push)
 └── .github/workflows/                     # ci.yml, supabase-production.yml
 ```
@@ -102,14 +105,17 @@ Managed through **timestamped SQL migrations** in `supabase/migrations/`, applie
 | `tags` | shared interest/category vocabulary (15, seeded by migration) | migration |
 | `listings` | business attractions (name, description, address, hours, 24h flag) | business owners |
 | `listing_tags` | M:M — a listing's tags | business owners |
+| `listing_images` | a listing's photos (storage path + `display_order`; index 0 is the cover) | business owners |
 | `tourist_tags` | M:M — a tourist's quiz-selected tags | tourists |
 | `itineraries` | named trip plans | tourists |
 | `itinerary_listings` | M:M — listings scheduled into an itinerary | tourists |
 
 ```
-profiles ──┬── listings ──── listing_tags ──── tags
-           │                                    │
-           ├── tourist_tags ────────────────────┘
+profiles ──┬── listings ──┬── listing_tags ──── tags
+           │              │                      │
+           │              └── listing_images     │
+           │                                     │
+           ├── tourist_tags ─────────────────────┘
            │
            └── itineraries ── itinerary_listings ── listings
 ```
@@ -131,7 +137,18 @@ Policies restrict users to their own `profiles`, `itineraries`, and `tourist_tag
 
 ### Recommendation engine
 
-The `recommend_listings` Postgres RPC ([migration](../supabase/migrations/20260628130000_recommend_listings_filters.sql)) ranks the feed by **TF-IDF weighted cosine similarity** between a tourist's tags and each listing's tags: it computes IDF across the whole corpus, scores each listing, supports optional tag/opening-hours filters, and returns paginated results with a windowed `total_count`. Listings with no tag match still appear (score 0), ordered after the matches.
+The `recommend_listings` Postgres RPC ([migration](../supabase/migrations/20260628130000_recommend_listings_filters.sql)) ranks the feed by **TF-IDF weighted cosine similarity** between a tourist's tags and each listing's tags: it computes IDF across the whole corpus, scores each listing, supports optional tag/opening-hours filters, and returns paginated results with a windowed `total_count`. Listings with no tag match still appear (score 0), ordered after the matches. It also returns each listing's `preview_image_path` (first image by `display_order`, else `NULL`) so the explore feed can render covers without a second query.
+
+### Storage: listing images
+
+Listing photos live in a **public** Supabase Storage bucket, `listing-images`, created by [migration](../supabase/migrations/20260722041349_create_listing_images_bucket.sql) so local, CI, and production stay in lockstep.
+
+- **Path convention:** `<listing_id>/<uuid>.<jpg|png>`. The first path segment is the owning listing — that's what the storage policies key off.
+- **Bucket limits (server-enforced):** 5 MB per file, `image/jpeg` and `image/png` only. `lib/listing-images.ts` mirrors these client-side for fast feedback, but the bucket is the real boundary: a direct API upload that skips the form is still rejected (413 / 415).
+- **Access control:** public read — files are served from `/storage/v1/object/public/...`, are CDN-cacheable, and need no policy. Writes are owner-only: `INSERT`/`DELETE` policies on `storage.objects` require the listing named in the first path segment to belong to `auth.uid()`, the same ownership-via-parent shape used by `listing_tags`.
+- **Upload path:** the browser uploads **directly** to Storage using the user's JWT, then a server action records the resulting paths in `listing_images`. File bytes never travel through a server action, which Next caps at 1 MB by default.
+- **Rendering:** images are resized and converted to WebP by the **Next.js image optimizer** (`next/image` + `images.remotePatterns`), *not* Supabase's image transformation API — that API is Pro-plan only and billed per origin image. Two settings make this work: `_next/image` is excluded from the `proxy.ts` matcher (otherwise the role-home redirect swallows optimizer requests), and `images.dangerouslyAllowLocalIP` is enabled **in development only**, because Next 16 refuses to optimize loopback sources and local dev serves Storage from `127.0.0.1:54321`.
+- **Known limitation:** deleting a listing cascades its `listing_images` rows but not the bucket files. Orphaned objects are tolerated until an edit/delete flow removes them explicitly (`e2e/supabase-admin.ts` does this for test data).
 
 ## Routing & middleware
 
