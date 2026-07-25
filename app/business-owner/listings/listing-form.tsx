@@ -2,11 +2,12 @@
 
 import { useActionState, useEffect, useRef, useState } from "react";
 import { createListing, saveListingImages, type ActionState } from "./action";
-import { X, Check, ChevronDown } from "lucide-react";
+import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import TagMultiSelect, { type Tag } from "@/components/tag-multi-select";
 import { useToast } from "@/context/toast-context";
 import { isValidTimeRange } from "@/lib/time-constraints";
 import createClient from "@/lib/supabase/client";
@@ -17,12 +18,6 @@ import {
   validateImageFiles,
 } from "@/lib/listing-images";
 
-export type Tag = {
-  id: string;
-  tag_name: string;
-  category: string;
-};
-
 // A picked file paired with its preview URL. Kept together in one array so the
 // two can never drift out of sync, and so revoking on removal is trivial.
 type SelectedImage = { file: File; previewUrl: string };
@@ -30,7 +25,6 @@ type SelectedImage = { file: File; previewUrl: string };
 export default function ListingForm({ availableTags }: { availableTags: Tag[] }) {
   const [state, formAction, isPending] = useActionState<ActionState, FormData>(createListing, null);
   const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [is24Hours, setIs24Hours] = useState(false);
   const [openTime, setOpenTime] = useState("");
   const [closeTime, setCloseTime] = useState("");
@@ -169,24 +163,8 @@ export default function ListingForm({ availableTags }: { availableTags: Tag[] })
     setImages(images.filter((_, i) => i !== index));
   };
 
-  const toggleTag = (tag: Tag) => {
-    if (selectedTags.some((t) => t.id === tag.id)) {
-      setSelectedTags(selectedTags.filter((t) => t.id !== tag.id));
-    } else {
-      if (selectedTags.length >= 5) {
-        toast({ description: "You can only select up to 5 tags." });
-        return;
-      }
-      setSelectedTags([...selectedTags, tag]);
-    }
-  };
-
   return (
     <form action={formAction} className="space-y-4">
-      {selectedTags.map((tag) => (
-        <input key={tag.id} type="hidden" name="selected_tags" value={tag.id} />
-      ))}
-
       <Field label="Listing Name" required>
         {(f) => <Input {...f} type="text" name="listing_name" required />}
       </Field>
@@ -269,47 +247,18 @@ export default function ListingForm({ availableTags }: { availableTags: Tag[] })
         )}
       </div>
 
-      {/* --- NEW TAG SELECTOR UI --- */}
-      <div className="w-full flex flex-col gap-2 pt-2">
-        <label className="block text-sm font-medium">Listing Tags (Choose up to 5)</label>
-        
-        {/* Selected Badges */}
-        <div className="flex flex-wrap gap-2 mb-1">
-          {selectedTags.map((tag) => (
-            <span key={tag.id} className="flex items-center gap-1 px-3 py-1 bg-primary text-primary-foreground rounded-full text-xs font-medium">
-              {tag.tag_name}
-              <button type="button" onClick={() => toggleTag(tag)} className="hover:text-muted-foreground/60"><X className="w-3 h-3" /></button>
-            </span>
-          ))}
-        </div>
-
-        {/* Dropdown Button */}
-        <div className="relative">
-          <button type="button" onClick={() => setIsDropdownOpen(!isDropdownOpen)} className="w-full flex justify-between items-center text-left px-3 py-2 border border-input rounded-md bg-background text-sm">
-            <span>{selectedTags.length === 0 ? "Select tags..." : `${selectedTags.length} tags selected`}</span>
-            <ChevronDown className="w-4 h-4 text-muted-foreground" />
-          </button>
-
-          {/* Dropdown Menu */}
-          {isDropdownOpen && (
-            <div className="absolute z-10 w-full mt-1 bg-popover border rounded-md shadow-lg max-h-60 overflow-y-auto">
-              {availableTags.map((tag) => {
-                const isSelected = selectedTags.some((t) => t.id === tag.id);
-                const isMaxedOut = selectedTags.length >= 5 && !isSelected;
-                return (
-                  <div key={tag.id} onClick={() => !isMaxedOut && toggleTag(tag)} className={`flex items-center justify-between px-4 py-2 cursor-pointer text-sm border-b last:border-0 ${isSelected ? "bg-muted font-medium" : "hover:bg-muted"} ${isMaxedOut ? "opacity-50 cursor-not-allowed" : ""}`}>
-                    <div className="flex flex-col">
-                      <span>{tag.tag_name}</span>
-                      <span className="text-xs text-muted-foreground">{tag.category}</span>
-                    </div>
-                    {isSelected && <Check className="w-4 h-4 text-black" />}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      </div>
+      <TagMultiSelect
+        availableTags={availableTags}
+        selected={selectedTags}
+        onChange={setSelectedTags}
+        maxSelected={5}
+        onMaxSelected={() =>
+          toast({ description: "You can only select up to 5 tags." })
+        }
+        name="selected_tags"
+        label="Listing Tags (Choose up to 5)"
+        className="pt-2"
+      />
 
       {/* --- IMAGE PICKER --- */}
       <div className="w-full flex flex-col gap-2 pt-2">
