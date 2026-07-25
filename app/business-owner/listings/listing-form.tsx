@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useRef, useState } from "react";
 import { createListing, saveListingImages, type ActionState } from "./action";
 import { X, Check, ChevronDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -377,9 +378,9 @@ export default function ListingForm({ availableTags }: { availableTags: Tag[] })
         )}
       </div>
 
-      <button type="submit" disabled={isPending || isUploading || hoursRangeInvalid} className="w-full bg-primary text-primary-foreground rounded-md py-2 px-4 hover:bg-primary/90 disabled:opacity-50 mt-4">
+      <Button type="submit" disabled={isPending || isUploading || hoursRangeInvalid} className="w-full mt-4">
         {isUploading ? "Uploading images..." : isPending ? "Creating..." : "Create Listing"}
-      </button>
+      </Button>
     </form>
   );
 } 

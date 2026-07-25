@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { X, Check, ChevronDown } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 export type Tag = {
@@ -159,21 +160,13 @@ export default function FilterBar({
 
         {/* Actions */}
         <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={applyFilters}
-            className="px-5 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition"
-          >
+          <Button type="button" onClick={applyFilters}>
             Apply
-          </button>
+          </Button>
           {hasActiveFilters && (
-            <button
-              type="button"
-              onClick={clearFilters}
-              className="px-5 py-2 border border-input rounded-md text-sm font-medium hover:bg-muted transition"
-            >
+            <Button type="button" variant="outline" onClick={clearFilters}>
               Clear
-            </button>
+            </Button>
           )}
         </div>
       </div>
