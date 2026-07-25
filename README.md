@@ -21,8 +21,10 @@ Built with **Next.js 16** (App Router), **React 19**, **Supabase** (PostgreSQL +
 
 **Shared**
 - **Role-based routing** — middleware keeps tourists and owners in their own sections
-- **Responsive navigation** with a role-aware menu and avatar dropdown
+- **Responsive navigation** with a role-aware menu, an active-route indicator, and an avatar dropdown
+- **Themeable UI** — light / dark / system modes plus switchable colour palettes, remembered across sessions and applied server-side (no flash)
 - **Standardised feedback UI** — one toast system and one reusable confirmation dialog across the app
+- **Shared UI primitives** — buttons, inputs, cards, tag picker, and date/time fields as single components, with consistent hover/press motion (and `prefers-reduced-motion` support)
 
 ## Quickstart
 
