@@ -3,6 +3,8 @@
 import { useActionState, useEffect, useRef, useState } from "react";
 import { createListing, saveListingImages, type ActionState } from "./action";
 import { X, Check, ChevronDown } from "lucide-react";
+import { Field } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/context/toast-context";
 import { isValidTimeRange } from "@/lib/time-constraints";
@@ -184,35 +186,29 @@ export default function ListingForm({ availableTags }: { availableTags: Tag[] })
         <input key={tag.id} type="hidden" name="selected_tags" value={tag.id} />
       ))}
 
-      <div>
-        <label htmlFor="listing_name" className="block text-sm font-medium">Listing Name *</label>
-        <input type="text" id="listing_name" name="listing_name" required className="mt-1 block w-full rounded-md border border-input p-2" />
-      </div>
+      <Field label="Listing Name" required>
+        {(f) => <Input {...f} type="text" name="listing_name" required />}
+      </Field>
 
-      <div>
-        <label htmlFor="listing_description" className="block text-sm font-medium">Description</label>
+      <Field label="Description" description="Aim for 100–200 words.">
         {/* rows sizes the box to fit the placeholder prompt; field-sizing-fixed
             overrides the primitive's content-sizing so the box stays put and
             scrolls once a description outgrows it, rather than growing without
-            bound. The word-count guidance moves out of the placeholder (which
-            the box is sized to) into help text below. */}
-        <Textarea
-          id="listing_description"
-          name="listing_description"
-          rows={4}
-          placeholder="Describe your business — what makes it special, what do you offer, and who is it for?"
-          aria-describedby="listing_description_help"
-          className="mt-1 field-sizing-fixed"
-        />
-        <p id="listing_description_help" className="mt-1 text-sm text-muted-foreground">
-          Aim for 100–200 words.
-        </p>
-      </div>
+            bound. The word-count guidance lives in the field's help slot. */}
+        {(f) => (
+          <Textarea
+            {...f}
+            name="listing_description"
+            rows={4}
+            placeholder="Describe your business — what makes it special, what do you offer, and who is it for?"
+            className="field-sizing-fixed"
+          />
+        )}
+      </Field>
 
-      <div>
-        <label htmlFor="listing_address" className="block text-sm font-medium">Address</label>
-        <input type="text" id="listing_address" name="listing_address" className="mt-1 block w-full rounded-md border border-input p-2" />
-      </div>
+      <Field label="Address">
+        {(f) => <Input {...f} type="text" name="listing_address" />}
+      </Field>
 
       <div className="space-y-2">
         <label className="flex items-center gap-2 text-sm font-medium">
@@ -234,9 +230,12 @@ export default function ListingForm({ availableTags }: { availableTags: Tag[] })
         </label>
 
         <div className="grid grid-cols-2 gap-4">
+          {/* The hours pair shares one range error and becomes a TimeRangeField
+              in the date/time epic; for now they move onto the Input primitive
+              so their focus ring matches every other field. */}
           <div>
             <label htmlFor="open_time" className="block text-sm font-medium">Opening Time {!is24Hours && "*"}</label>
-            <input
+            <Input
               type="time"
               id="open_time"
               name="open_time"
@@ -245,12 +244,12 @@ export default function ListingForm({ availableTags }: { availableTags: Tag[] })
               disabled={is24Hours}
               required={!is24Hours}
               aria-invalid={hoursRangeInvalid}
-              className="mt-1 block w-full rounded-md border border-input p-2 disabled:cursor-not-allowed disabled:bg-muted"
+              className="mt-1"
             />
           </div>
           <div>
             <label htmlFor="close_time" className="block text-sm font-medium">Closing Time {!is24Hours && "*"}</label>
-            <input
+            <Input
               type="time"
               id="close_time"
               name="close_time"
@@ -259,7 +258,7 @@ export default function ListingForm({ availableTags }: { availableTags: Tag[] })
               disabled={is24Hours}
               required={!is24Hours}
               aria-invalid={hoursRangeInvalid}
-              className="mt-1 block w-full rounded-md border border-input p-2 disabled:cursor-not-allowed disabled:bg-muted"
+              className="mt-1"
             />
           </div>
         </div>

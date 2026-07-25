@@ -4,6 +4,8 @@ import { useEffect, useState, use } from 'react';
 import createClient from '@/lib/supabase/client';
 import Link from 'next/link';
 import { generateItinerarySchedule, ScheduleItem } from './generate-actions';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/context/toast-context';
 import { useConfirm } from '@/context/confirm-context';
 
@@ -303,19 +305,18 @@ export default function ItineraryViewPage({ params }: { params: Promise<{ id: st
                 </p>
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-1">Start Date</label>
-                  <input type="date" value={genStartDate} onChange={e => setGenStartDate(e.target.value)} className="w-full border rounded p-2" />
+                  <Input type="date" value={genStartDate} onChange={e => setGenStartDate(e.target.value)} />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-1">End Date</label>
-                  <input type="date" value={genEndDate} onChange={e => setGenEndDate(e.target.value)} className="w-full border rounded p-2" />
+                  <Input type="date" value={genEndDate} onChange={e => setGenEndDate(e.target.value)} />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-1">Remarks (optional)</label>
-                  <textarea 
-                    value={genRemarks} 
-                    onChange={e => setGenRemarks(e.target.value)} 
+                  <Textarea
+                    value={genRemarks}
+                    onChange={e => setGenRemarks(e.target.value)}
                     placeholder="E.g., I prefer a relaxed pace."
-                    className="w-full border rounded p-2 h-24"
                     maxLength={200}
                   />
                 </div>
