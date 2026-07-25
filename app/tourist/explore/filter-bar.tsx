@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { X, Check, ChevronDown } from "lucide-react";
 
+import { Input } from "@/components/ui/input";
+
 export type Tag = {
   id: string;
   tag_name: string;
@@ -136,24 +138,22 @@ export default function FilterBar({
           <label htmlFor="open_from" className="text-sm font-medium">
             Open from
           </label>
-          <input
+          <Input
             type="time"
             id="open_from"
             value={openFrom}
             onChange={(e) => setOpenFrom(e.target.value)}
-            className="px-3 py-2 border border-input rounded-md bg-background text-sm"
           />
         </div>
         <div className="flex flex-col gap-2">
           <label htmlFor="open_until" className="text-sm font-medium">
             Open until
           </label>
-          <input
+          <Input
             type="time"
             id="open_until"
             value={openUntil}
             onChange={(e) => setOpenUntil(e.target.value)}
-            className="px-3 py-2 border border-input rounded-md bg-background text-sm"
           />
         </div>
 

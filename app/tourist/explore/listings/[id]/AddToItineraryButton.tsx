@@ -5,6 +5,7 @@ import createClient from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { hasTimeOverlap } from "@/lib/itinerary-overlap";
 import { isValidTimeRange, isWithinOperatingHours } from "@/lib/time-constraints";
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/context/toast-context";
 
 type ItineraryOption = { id: string; itinerary_name: string };
@@ -217,36 +218,33 @@ export default function AddToItineraryButton({ listingId }: { listingId: string 
                 <>
                   <div>
                     <label className="block text-sm font-medium mb-1">Visit Date</label>
-                    <input
+                    <Input
                       type="date"
                       value={startDate}
                       onChange={(e) => setStartDate(e.target.value)}
                       required={!letAiDecide}
-                      className="w-full border rounded p-2"
                     />
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium mb-1">Start Time</label>
-                      <input
+                      <Input
                         type="time"
                         value={startTime}
                         onChange={(e) => setStartTime(e.target.value)}
                         required={!letAiDecide}
                         aria-invalid={rangeInvalid}
-                        className="w-full border rounded p-2"
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium mb-1">End Time</label>
-                      <input
+                      <Input
                         type="time"
                         value={endTime}
                         onChange={(e) => setEndTime(e.target.value)}
                         required={!letAiDecide}
                         aria-invalid={rangeInvalid}
-                        className="w-full border rounded p-2"
                       />
                     </div>
                   </div>
