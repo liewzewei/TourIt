@@ -93,8 +93,12 @@ export default function ListingCard({
     </>
   );
 
+  // `lift` (hover: rise + scale + elevated shadow) drives the card off the page;
+  // its transform/shadow animate via this element's own transition. Under
+  // reduced motion the lift tokens flatten to no movement, leaving just the
+  // shadow as a hover cue.
   const className =
-    "flex h-full flex-col overflow-hidden rounded-lg border bg-card shadow-sm transition-shadow hover:shadow-md";
+    "flex h-full flex-col overflow-hidden rounded-lg border bg-card shadow-sm transition-all lift";
 
   if (href) {
     return (
