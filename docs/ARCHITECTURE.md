@@ -41,16 +41,16 @@ How TourIt is put together: the rendering model, the project layout, the data mo
 - **Server Components** for data-heavy pages (explore feed, dashboard) — data fetched server-side via Supabase RPCs.
 - **Client Components** (`'use client'`) for interactive pages (quiz, itineraries, itinerary detail).
 - **Server Actions** (`'use server'`) for all mutations (role updates, quiz completion, listing creation, AI generation).
-- **Context providers** mounted once in the root layout: `UserProvider` (auth user + profile, via `useUser()`), `ToastProvider` (`useToast()`), and `ConfirmProvider` (`useConfirm()`).
+- **Context providers** mounted once in the root layout: `ThemeProvider` (next-themes light/dark/system), `PaletteProvider` (cookie-backed colour palette, via `usePalette()`), `UserProvider` (auth user + profile, via `useUser()`), `ToastProvider` (`useToast()`), and `ConfirmProvider` (`useConfirm()`).
 
 ## Project structure
 
 ```
 TourIt/
 ├── app/                                   # Next.js App Router
-│   ├── layout.tsx                         # Root layout: UserProvider → ToastProvider → ConfirmProvider → Nav
+│   ├── layout.tsx                         # Root layout: reads palette cookie; ThemeProvider → PaletteProvider → UserProvider → ToastProvider → ConfirmProvider → Nav
 │   ├── page.tsx                           # Landing page
-│   ├── globals.css                        # Tailwind v4 globals + theme tokens
+│   ├── globals.css                        # Tailwind v4 globals: design tokens, motion, elevation, lift/press, palettes, reduced-motion
 │   ├── auth/
 │   │   ├── login/page.tsx                 # Google OAuth login + dev-only quick-login buttons
 │   │   ├── callback/route.ts              # OAuth code exchange + redirect
@@ -64,20 +64,29 @@ TourIt/
 │   ├── business-owner/{page.tsx, listings/{page.tsx, listing-form.tsx, action.ts}}
 │   └── settings/profile/page.tsx
 ├── components/
-│   ├── nav.tsx, auth-buttons.tsx, user-avatar.tsx
+│   ├── nav.tsx, nav-link.tsx              # nav shell + shared active-route link (desktop + mobile)
+│   ├── auth-buttons.tsx, user-avatar.tsx  # account menu (hosts the theme/palette switcher)
+│   ├── listing-card.tsx, back-link.tsx    # shared explore/owner card + filter-preserving back link
+│   ├── tag-multi-select.tsx               # shared tag dropdown (filter bar + listing form)
+│   ├── theme-provider.tsx, theme-controls.tsx  # next-themes wrapper + mode/palette switcher
 │   ├── listing-image-carousel.tsx         # swipeable gallery on the listing detail page
-│   └── ui/                                # shadcn/ui primitives + toast + alert-dialog + carousel
+│   └── ui/                                # primitives: button, input, textarea, label, field,
+│                                          #   popover, calendar, date-field, time-field, time-range-field,
+│                                          #   + toast, alert-dialog, carousel
 ├── context/
 │   ├── user-context.tsx                   # auth user + profile (useUser)
+│   ├── palette-context.tsx                # PaletteProvider + usePalette (cookie-backed palette axis)
 │   ├── toast-context.tsx                  # ToastProvider + useToast
 │   └── confirm-context.tsx                # ConfirmProvider + promise-based useConfirm
-├── hooks/useUser.ts
+├── hooks/{useUser.ts, useCoarsePointer.ts, useMounted.ts}
 ├── lib/
 │   ├── supabase/{server.ts, client.ts, proxy.ts}
 │   ├── explore-params.ts                  # explore-feed URL params
 │   ├── itinerary-overlap.ts               # time-overlap validation
 │   ├── listing-images.ts                  # image limits/validation + public URL builder
 │   ├── time-constraints.ts                # operating-hours validation (mirrors the DB trigger)
+│   ├── time-options.ts                    # time-picker option generation + 12h label formatting
+│   ├── palettes.ts                        # palette list + cookie constant
 │   └── utils.ts                           # cn() helper
 ├── constants/common.ts                    # LOGIN_PATH, ROLE_HOME_PATH
 ├── types/index.ts
@@ -179,6 +188,18 @@ Role homes (`constants/common.ts`): tourist → `/tourist`, business owner → `
 - **Defense-in-depth validation.** Time/hours rules are checked in the app (`lib/time-constraints.ts`, `lib/itinerary-overlap.ts`) *and* enforced at the database (CHECK constraints + the operating-hours trigger), so direct API writes and the AI scheduler can't bypass them.
 - **Migration-driven schema.** All schema change is timestamped SQL migrations — tested locally with `db reset`, validated from scratch in CI, deployed on merge to `main`.
 - **RLS + GRANT together.** See [Access control](#access-control-rls-and-grants).
+- **Shared UI primitives over call-site styling.** Buttons, inputs, cards, the tag picker, and the date/time fields are single components, not per-page markup — a visual change is one edit. This is the governing principle of the [UI/UX overhaul](ISSUES.md#uiux-overhaul).
+
+### Design system & theming
+
+All visual style resolves through CSS custom properties declared in `app/globals.css`, so a colour, shadow, or motion change is one edit rather than twenty call sites.
+
+- **Tokens.** Semantic colour tokens (`--background`, `--primary`, `--muted`, `--success`/`--warning`, …), a validated categorical chart ramp (`--chart-1..5`), per-mode **elevation** shadows, **motion** tokens (easing + durations; the default transition is retimed so existing `transition` utilities inherit the feel), and **lift/press geometry** exposed as `@utility lift` / `press`. Colour tokens are mapped to Tailwind via `@theme inline`; motion tokens live in `@theme static` (Tailwind tree-shakes theme vars referenced only from hand-written CSS).
+- **Two theming axes**, both on `<html>` and independent:
+  - **Mode** — light/dark/system via **next-themes** (`attribute="class"`), with a blocking script (no FOUC) and `suppressHydrationWarning` for the class it adds after hydration.
+  - **Palette** — a `data-palette` attribute (Teal / Sunset / Grape), persisted in a cookie **read server-side in the root layout**, so the correct colours render on the first byte and it works with JS disabled. Each palette sets the full token set — including its own re-validated chart ramp — for both modes, via `[data-palette=X]` (light) and `.dark[data-palette=X]` (dark) blocks.
+- **Chart colours are computed, not chosen.** Any change to a `--chart-*` ramp is re-validated with the data-viz palette validator (colour-vision separation, normal-vision floor, contrast vs surface) — never eyeballed.
+- **Motion sensitivity.** A `prefers-reduced-motion` rule flattens the lift/press geometry tokens (so hover/press keep their colour + shadow feedback but stop moving) and blanket-resets transition/animation durations.
 
 ### Dev-only login
 
