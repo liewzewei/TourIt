@@ -1,14 +1,11 @@
 import createClient from "@/lib/supabase/server";
 
-import Image from "next/image";
-import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ImageIcon } from "lucide-react";
 
 import type { RecommendedListing } from "@/types/index";
+import ListingCard from "@/components/listing-card";
 import Pagination from "./pagination";
 import FilterBar, { type Tag } from "./filter-bar";
-import { getListingImageUrl } from "@/lib/listing-images";
 import {
   firstValue,
   parsePage,
@@ -100,63 +97,17 @@ export default async function ExplorePage({
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {listings.map((listing) => (
-          <Link
-            href={`/tourist/explore/listings/${listing.id}`}
+          <ListingCard
             key={listing.id}
-            className="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col h-full cursor-pointer"
-          >
-            {/* Fixed aspect box reserves space before load (no layout shift).
-                A missing image falls back to a neutral icon rather than a
-                committed placeholder asset. */}
-            <div className="relative aspect-video bg-muted">
-              {listing.preview_image_path ? (
-                <Image
-                  src={getListingImageUrl(listing.preview_image_path)}
-                  alt={listing.listing_name}
-                  fill
-                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                  className="object-cover"
-                />
-              ) : (
-                <div className="flex h-full items-center justify-center text-muted-foreground/60">
-                  <ImageIcon className="h-10 w-10" aria-hidden />
-                </div>
-              )}
-            </div>
-
-            <div className="p-6 flex flex-col flex-grow">
-              <h2 className="text-xl font-semibold mb-2">
-                {listing.listing_name}
-              </h2>
-
-              <p className="text-muted-foreground mb-4 line-clamp-3 flex-grow">
-                {listing.listing_description || "No description provided."}
-              </p>
-
-              {/* Tags come back pre-flattened as [{ id, tag_name }] from the RPC */}
-              {listing.tags.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {listing.tags.map((tag) => (
-                    <span
-                      key={tag.id}
-                      className="bg-accent text-accent-foreground text-xs px-2 py-1 rounded-full font-medium"
-                    >
-                      {tag.tag_name}
-                    </span>
-                  ))}
-                </div>
-              )}
-
-              <div className="text-sm text-muted-foreground pt-4 border-t mt-auto">
-                <p>📍 {listing.listing_address || "Location unavailable"}</p>
-                {(listing.open_time || listing.close_time) && (
-                  <p>
-                    🕒 {listing.open_time} - {listing.close_time}
-                  </p>
-                )}
-              </div>
-            </div>
-          </Link>
+            href={`/tourist/explore/listings/${listing.id}`}
+            name={listing.listing_name}
+            description={listing.listing_description}
+            address={listing.listing_address}
+            openTime={listing.open_time}
+            closeTime={listing.close_time}
+            tags={listing.tags}
+            imagePath={listing.preview_image_path}
+          />
         ))}
 
         {listings.length === 0 && (
