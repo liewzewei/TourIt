@@ -3,17 +3,32 @@ import { notFound } from "next/navigation";
 import { after } from "next/server";
 import AddToItineraryButton from "./AddToItineraryButton";
 import ListingImageCarousel from "@/components/listing-image-carousel";
+import BackLink from "@/components/back-link";
 
 // Notice params is now a Promise
-export default async function ListingDetailsPage({ 
-  params 
-}: { 
-  params: Promise<{ id: string }> 
+export default async function ListingDetailsPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const supabase = await createClient();
-  
+
   // Await the params before using them!
   const resolvedParams = await params;
+
+  // The feed's filters ride along in the URL (added by the explore cards), so
+  // "back to listings" returns to the same filtered page rather than a reset
+  // feed. Absent (e.g. a direct link), it falls back to the bare feed.
+  const feedQuery = new URLSearchParams();
+  for (const [key, value] of Object.entries(await searchParams)) {
+    if (value === undefined) continue;
+    if (Array.isArray(value)) value.forEach((v) => feedQuery.append(key, v));
+    else feedQuery.set(key, value);
+  }
+  const feedQs = feedQuery.toString();
+  const backHref = feedQs ? `/tourist/explore?${feedQs}` : "/tourist/explore";
 
   // Fetch the specific listing by ID
   const { data: listing, error } = await supabase
@@ -53,13 +68,35 @@ export default async function ListingDetailsPage({
     });
   }
 
+  // Tags come back nested as listing_tags -> tags; flatten and drop any nulls.
+  const tags = (listing.listing_tags ?? [])
+    .map((relation: { tags: { id: string; tag_name: string } | null }) => relation.tags)
+    .filter((tag: { id: string; tag_name: string } | null): tag is { id: string; tag_name: string } => tag !== null);
+
   // Render the full details page
   return (
     <main className="w-full max-w-4xl mx-auto p-8">
-      <div className="flex justify-between items-start mb-6">
+      <div className="mb-6">
+        <BackLink href={backHref}>Back to listings</BackLink>
+      </div>
+
+      <div className="flex justify-between items-start mb-4">
         <h1 className="text-4xl font-bold">{listing.listing_name}</h1>
         <AddToItineraryButton listingId={listing.id} />
       </div>
+
+      {tags.length > 0 && (
+        <div className="mb-6 flex flex-wrap gap-2">
+          {tags.map((tag: { id: string; tag_name: string }) => (
+            <span
+              key={tag.id}
+              className="rounded-full bg-accent px-2 py-1 text-xs font-medium text-accent-foreground"
+            >
+              {tag.tag_name}
+            </span>
+          ))}
+        </div>
+      )}
 
       {listing.listing_images?.length > 0 && (
         <div className="mb-6">

@@ -56,6 +56,18 @@ export default async function ExplorePage({
 
   const hasActiveFilters = tagIds.length > 0 || openFrom !== null || openUntil !== null;
 
+  // The current feed URL's query, carried into each card so the listing page
+  // can offer a "back to the feed" link that lands on the same filtered page.
+  const currentQuery = (() => {
+    const sp = new URLSearchParams();
+    for (const [key, value] of Object.entries(params)) {
+      if (value === undefined) continue;
+      if (Array.isArray(value)) value.forEach((v) => sp.append(key, v));
+      else sp.set(key, value);
+    }
+    return sp.toString();
+  })();
+
   // Build hrefs that preserve the active filters (and drop page=1).
   const buildHref = (targetPage: number) => {
     const sp = new URLSearchParams();
@@ -99,7 +111,7 @@ export default async function ExplorePage({
         {listings.map((listing) => (
           <ListingCard
             key={listing.id}
-            href={`/tourist/explore/listings/${listing.id}`}
+            href={`/tourist/explore/listings/${listing.id}${currentQuery ? `?${currentQuery}` : ""}`}
             name={listing.listing_name}
             description={listing.listing_description}
             address={listing.listing_address}
