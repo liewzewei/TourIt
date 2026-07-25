@@ -188,7 +188,7 @@ Role homes (`constants/common.ts`): tourist → `/tourist`, business owner → `
 - **Defense-in-depth validation.** Time/hours rules are checked in the app (`lib/time-constraints.ts`, `lib/itinerary-overlap.ts`) *and* enforced at the database (CHECK constraints + the operating-hours trigger), so direct API writes and the AI scheduler can't bypass them.
 - **Migration-driven schema.** All schema change is timestamped SQL migrations — tested locally with `db reset`, validated from scratch in CI, deployed on merge to `main`.
 - **RLS + GRANT together.** See [Access control](#access-control-rls-and-grants).
-- **Shared UI primitives over call-site styling.** Buttons, inputs, cards, the tag picker, and the date/time fields are single components, not per-page markup — a visual change is one edit. This is the governing principle of the [UI/UX overhaul](ISSUES.md#uiux-overhaul).
+- **Shared UI primitives over call-site styling.** Buttons, inputs, cards, the tag picker, and the date/time fields are single components, not per-page markup — a visual change is one edit.
 
 ### Design system & theming
 
