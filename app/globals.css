@@ -208,6 +208,24 @@
     0 4px 12px -6px oklch(0 0 0 / 0.60);
 }
 
+/* Interaction recipes, driven by the geometry tokens so hover/press feel is one
+   edit (and reduced-motion, which flattens those tokens, neutralises them). The
+   transform reads as rising toward the viewer; the elevated shadow sells it.
+   Animation comes from the element's own `transition` (Button has transition-all
+   at the token duration/easing), so these only declare the end states. */
+@utility lift {
+  &:hover {
+    transform: translateY(var(--lift-y)) scale(var(--lift-scale));
+    box-shadow: var(--shadow-lifted);
+  }
+}
+@utility press {
+  &:active {
+    transform: translateY(var(--press-y)) scale(var(--press-scale));
+    box-shadow: var(--shadow-raised);
+  }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

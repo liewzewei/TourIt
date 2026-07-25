@@ -1,6 +1,8 @@
 import { Suspense } from "react";
 import Link from "next/link";
 
+import { Button } from "@/components/ui/button";
+
 import createClient from "@/lib/supabase/server";
 import { firstValue } from "@/lib/explore-params";
 import { parsePeriod, PERIOD_LABELS, type Period } from "@/lib/analytics-params";
@@ -161,12 +163,9 @@ function EmptyNoListings() {
       <p className="mb-4 text-muted-foreground">
         You have no listings yet, so there&apos;s nothing to measure.
       </p>
-      <Link
-        href="/business-owner/listings"
-        className="inline-block rounded bg-primary px-4 py-2 text-primary-foreground transition hover:bg-primary/90"
-      >
-        Create your first listing
-      </Link>
+      <Button asChild>
+        <Link href="/business-owner/listings">Create your first listing</Link>
+      </Button>
     </div>
   );
 }
