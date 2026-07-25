@@ -1,12 +1,16 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { cookies } from "next/headers";
 import "./globals.css";
 
 import Nav from "@/components/nav";
+import ThemeProvider from "@/components/theme-provider";
 import createClient from "@/lib/supabase/server";
 import { UserProvider } from "@/context/user-context";
+import { PaletteProvider } from "@/context/palette-context";
 import { ToastProvider } from "@/context/toast-context";
 import { ConfirmProvider } from "@/context/confirm-context";
+import { DEFAULT_PALETTE, PALETTE_COOKIE, isPaletteValue } from "@/lib/palettes";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -43,20 +47,38 @@ export default async function RootLayout({
       profile = data;
     }
 
+  // Palette is cookie-backed and applied on <html> during SSR, so it's flash-free
+  // and works without JS. The light/dark class is next-themes' job (blocking
+  // script + suppressHydrationWarning for the class it adds after hydration).
+  const cookieStore = await cookies();
+  const paletteCookie = cookieStore.get(PALETTE_COOKIE)?.value;
+  const palette = isPaletteValue(paletteCookie) ? paletteCookie : DEFAULT_PALETTE;
+
   return (
     <html
       lang="en"
+      data-palette={palette}
+      suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <UserProvider user={user} profile={profile}>
-          <ToastProvider>
-            <ConfirmProvider>
-              <Nav />
-              {children}
-            </ConfirmProvider>
-          </ToastProvider>
-        </UserProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <PaletteProvider initialPalette={palette}>
+            <UserProvider user={user} profile={profile}>
+              <ToastProvider>
+                <ConfirmProvider>
+                  <Nav />
+                  {children}
+                </ConfirmProvider>
+              </ToastProvider>
+            </UserProvider>
+          </PaletteProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -208,6 +208,149 @@
     0 4px 12px -6px oklch(0 0 0 / 0.60);
 }
 
+/* Palettes -- a second theming axis, orthogonal to light/dark. `data-palette`
+   lives on <html> (cookie-backed, read server-side, so it survives without JS
+   and never flashes). Each palette is the default's structure with the brand
+   hue rotated and the neutrals re-traced; status colours (destructive/success/
+   warning) and elevation/lift are inherited, so they stay consistent.
+
+   Both the light block `[data-palette=X]` and the dark block
+   `.dark[data-palette=X]` set the FULL colour set: the light block (specificity
+   0,1,0) must sit after :root to win, and the dark block (0,2,0) must out-rank
+   both .dark and the light block. Chart ramps are each re-validated for their
+   mode/surface with the dataviz validator (rotate-and-check, not eyeballed). */
+[data-palette="sunset"] {
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.21 0.02 45);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.21 0.02 45);
+  --primary: oklch(0.52 0.11 45);
+  --primary-foreground: oklch(0.99 0.005 45);
+  --secondary: oklch(0.96 0.008 45);
+  --secondary-foreground: oklch(0.30 0.03 45);
+  --muted: oklch(0.965 0.006 45);
+  --muted-foreground: oklch(0.52 0.02 45);
+  --accent: oklch(0.94 0.02 45);
+  --accent-foreground: oklch(0.35 0.06 45);
+  --border: oklch(0.90 0.008 45);
+  --input: oklch(0.90 0.008 45);
+  --ring: oklch(0.62 0.10 45);
+  --chart-1: oklch(0.62 0.13 45);
+  --chart-2: oklch(0.66 0.14 275);
+  --chart-3: oklch(0.50 0.17 140);
+  --chart-4: oklch(0.58 0.17 220);
+  --chart-5: oklch(0.45 0.11 355);
+  --sidebar: oklch(0.98 0.006 45);
+  --sidebar-foreground: oklch(0.21 0.02 45);
+  --sidebar-primary: oklch(0.52 0.11 45);
+  --sidebar-primary-foreground: oklch(0.99 0.005 45);
+  --sidebar-accent: oklch(0.94 0.02 45);
+  --sidebar-accent-foreground: oklch(0.35 0.06 45);
+  --sidebar-border: oklch(0.90 0.008 45);
+  --sidebar-ring: oklch(0.62 0.10 45);
+  --background: oklch(0.985 0.004 45);
+  --foreground: oklch(0.21 0.02 45);
+}
+
+.dark[data-palette="sunset"] {
+  --background: oklch(0.17 0.012 45);
+  --foreground: oklch(0.97 0.005 45);
+  --card: oklch(0.21 0.014 45);
+  --card-foreground: oklch(0.97 0.005 45);
+  --popover: oklch(0.21 0.014 45);
+  --popover-foreground: oklch(0.97 0.005 45);
+  --primary: oklch(0.72 0.12 45);
+  --primary-foreground: oklch(0.18 0.03 45);
+  --secondary: oklch(0.28 0.016 45);
+  --secondary-foreground: oklch(0.97 0.005 45);
+  --muted: oklch(0.28 0.016 45);
+  --muted-foreground: oklch(0.72 0.02 45);
+  --accent: oklch(0.30 0.03 45);
+  --accent-foreground: oklch(0.92 0.03 45);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 16%);
+  --ring: oklch(0.60 0.09 45);
+  --chart-1: oklch(0.66 0.12 45);
+  --chart-2: oklch(0.65 0.14 280);
+  --chart-3: oklch(0.55 0.16 140);
+  --chart-4: oklch(0.62 0.16 220);
+  --chart-5: oklch(0.53 0.13 0);
+  --sidebar: oklch(0.21 0.014 45);
+  --sidebar-foreground: oklch(0.97 0.005 45);
+  --sidebar-primary: oklch(0.72 0.12 45);
+  --sidebar-primary-foreground: oklch(0.18 0.03 45);
+  --sidebar-accent: oklch(0.30 0.03 45);
+  --sidebar-accent-foreground: oklch(0.92 0.03 45);
+  --sidebar-border: oklch(1 0 0 / 12%);
+  --sidebar-ring: oklch(0.60 0.09 45);
+}
+
+[data-palette="grape"] {
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.21 0.02 300);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.21 0.02 300);
+  --primary: oklch(0.52 0.11 300);
+  --primary-foreground: oklch(0.99 0.005 300);
+  --secondary: oklch(0.96 0.008 300);
+  --secondary-foreground: oklch(0.30 0.03 300);
+  --muted: oklch(0.965 0.006 300);
+  --muted-foreground: oklch(0.52 0.02 300);
+  --accent: oklch(0.94 0.02 300);
+  --accent-foreground: oklch(0.35 0.06 300);
+  --border: oklch(0.90 0.008 300);
+  --input: oklch(0.90 0.008 300);
+  --ring: oklch(0.62 0.10 300);
+  --chart-1: oklch(0.62 0.13 300);
+  --chart-2: oklch(0.60 0.15 170);
+  --chart-3: oklch(0.50 0.17 35);
+  --chart-4: oklch(0.64 0.17 115);
+  --chart-5: oklch(0.45 0.11 250);
+  --sidebar: oklch(0.98 0.006 300);
+  --sidebar-foreground: oklch(0.21 0.02 300);
+  --sidebar-primary: oklch(0.52 0.11 300);
+  --sidebar-primary-foreground: oklch(0.99 0.005 300);
+  --sidebar-accent: oklch(0.94 0.02 300);
+  --sidebar-accent-foreground: oklch(0.35 0.06 300);
+  --sidebar-border: oklch(0.90 0.008 300);
+  --sidebar-ring: oklch(0.62 0.10 300);
+  --background: oklch(0.985 0.004 300);
+  --foreground: oklch(0.21 0.02 300);
+}
+
+.dark[data-palette="grape"] {
+  --background: oklch(0.17 0.012 300);
+  --foreground: oklch(0.97 0.005 300);
+  --card: oklch(0.21 0.014 300);
+  --card-foreground: oklch(0.97 0.005 300);
+  --popover: oklch(0.21 0.014 300);
+  --popover-foreground: oklch(0.97 0.005 300);
+  --primary: oklch(0.72 0.12 300);
+  --primary-foreground: oklch(0.18 0.03 300);
+  --secondary: oklch(0.28 0.016 300);
+  --secondary-foreground: oklch(0.97 0.005 300);
+  --muted: oklch(0.28 0.016 300);
+  --muted-foreground: oklch(0.72 0.02 300);
+  --accent: oklch(0.30 0.03 300);
+  --accent-foreground: oklch(0.92 0.03 300);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 16%);
+  --ring: oklch(0.60 0.09 300);
+  --chart-1: oklch(0.66 0.12 300);
+  --chart-2: oklch(0.65 0.14 175);
+  --chart-3: oklch(0.55 0.16 35);
+  --chart-4: oklch(0.67 0.16 115);
+  --chart-5: oklch(0.495 0.12 255);
+  --sidebar: oklch(0.21 0.014 300);
+  --sidebar-foreground: oklch(0.97 0.005 300);
+  --sidebar-primary: oklch(0.72 0.12 300);
+  --sidebar-primary-foreground: oklch(0.18 0.03 300);
+  --sidebar-accent: oklch(0.30 0.03 300);
+  --sidebar-accent-foreground: oklch(0.92 0.03 300);
+  --sidebar-border: oklch(1 0 0 / 12%);
+  --sidebar-ring: oklch(0.60 0.09 300);
+}
+
 /* Interaction recipes, driven by the geometry tokens so hover/press feel is one
    edit (and reduced-motion, which flattens those tokens, neutralises them). The
    transform reads as rising toward the viewer; the elevated shadow sells it.
