@@ -1,6 +1,9 @@
 export type MenuItem = {
     title: string;
     url: string;
+    // Match only the exact path, not descendants -- for a role home whose href
+    // prefixes its siblings (e.g. `/business-owner`).
+    exact?: boolean;
 };
 
 export type UserProfile = {

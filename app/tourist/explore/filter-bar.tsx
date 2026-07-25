@@ -2,16 +2,15 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { X, Check, ChevronDown } from "lucide-react";
+import { ChevronDown, SlidersHorizontal } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import TagMultiSelect, { type Tag } from "@/components/tag-multi-select";
+import { cn } from "@/lib/utils";
 
-export type Tag = {
-  id: string;
-  tag_name: string;
-  category: string;
-};
+// Re-exported so `explore/page.tsx` keeps importing the tag shape from here.
+export type { Tag };
 
 export default function FilterBar({
   availableTags,
@@ -33,15 +32,15 @@ export default function FilterBar({
   );
   const [openFrom, setOpenFrom] = useState(initialOpenFrom);
   const [openUntil, setOpenUntil] = useState(initialOpenUntil);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  const toggleTag = (tag: Tag) => {
-    setSelectedTags((prev) =>
-      prev.some((t) => t.id === tag.id)
-        ? prev.filter((t) => t.id !== tag.id)
-        : [...prev, tag]
-    );
-  };
+  // The badge and the default-open state reflect the *applied* filters (the URL,
+  // which is the source of truth), not the draft being edited -- so a closed
+  // panel still tells the user why the feed is filtered.
+  const appliedCount =
+    initialTagIds.length +
+    (initialOpenFrom ? 1 : 0) +
+    (initialOpenUntil ? 1 : 0);
+  const [isPanelOpen, setIsPanelOpen] = useState(appliedCount > 0);
 
   const applyFilters = () => {
     const params = new URLSearchParams();
@@ -62,114 +61,79 @@ export default function FilterBar({
     router.push("/tourist/explore");
   };
 
-  const hasActiveFilters =
+  const hasDraftFilters =
     selectedTags.length > 0 || openFrom !== "" || openUntil !== "";
 
   return (
-    <div className="mb-8 p-4 border rounded-lg bg-muted/50">
-      <div className="flex flex-col md:flex-row gap-4 md:items-end">
-        {/* Tag multi-select (match ANY) */}
-        <div className="flex-1 flex flex-col gap-2">
-          <span className="text-sm font-medium">Tags</span>
+    <div className="mb-8">
+      <Button
+        type="button"
+        variant="outline"
+        onClick={() => setIsPanelOpen((o) => !o)}
+        aria-expanded={isPanelOpen}
+      >
+        <SlidersHorizontal />
+        Filters
+        {appliedCount > 0 && (
+          <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-medium text-primary-foreground">
+            {appliedCount}
+          </span>
+        )}
+        <ChevronDown
+          className={cn("transition-transform", isPanelOpen && "rotate-180")}
+        />
+      </Button>
 
-          {selectedTags.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {selectedTags.map((tag) => (
-                <span
-                  key={tag.id}
-                  className="flex items-center gap-1 px-3 py-1 bg-primary text-primary-foreground rounded-full text-xs font-medium"
-                >
-                  {tag.tag_name}
-                  <button
-                    type="button"
-                    onClick={() => toggleTag(tag)}
-                    className="hover:text-muted-foreground/60"
-                    aria-label={`Remove ${tag.tag_name}`}
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
-                </span>
-              ))}
+      {isPanelOpen && (
+        <div className="mt-4 rounded-lg border bg-muted/50 p-4">
+          <div className="flex flex-col gap-4 md:flex-row md:items-end">
+            {/* Tag multi-select (match ANY) */}
+            <TagMultiSelect
+              availableTags={availableTags}
+              selected={selectedTags}
+              onChange={setSelectedTags}
+              label="Tags"
+              className="flex-1"
+            />
+
+            {/* Open during this window */}
+            <div className="flex flex-col gap-2">
+              <label htmlFor="open_from" className="text-sm font-medium">
+                Open from
+              </label>
+              <Input
+                type="time"
+                id="open_from"
+                value={openFrom}
+                onChange={(e) => setOpenFrom(e.target.value)}
+              />
             </div>
-          )}
+            <div className="flex flex-col gap-2">
+              <label htmlFor="open_until" className="text-sm font-medium">
+                Open until
+              </label>
+              <Input
+                type="time"
+                id="open_until"
+                value={openUntil}
+                onChange={(e) => setOpenUntil(e.target.value)}
+              />
+            </div>
 
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => setIsDropdownOpen((o) => !o)}
-              className="w-full flex justify-between items-center text-left px-3 py-2 border border-input rounded-md bg-background text-sm"
-            >
-              <span>
-                {selectedTags.length === 0
-                  ? "Select tags..."
-                  : `${selectedTags.length} selected`}
-              </span>
-              <ChevronDown className="w-4 h-4 text-muted-foreground" />
-            </button>
-
-            {isDropdownOpen && (
-              <div className="absolute z-10 w-full mt-1 bg-popover border rounded-md shadow-lg max-h-60 overflow-y-auto">
-                {availableTags.map((tag) => {
-                  const isSelected = selectedTags.some((t) => t.id === tag.id);
-                  return (
-                    <div
-                      key={tag.id}
-                      onClick={() => toggleTag(tag)}
-                      className={`flex items-center justify-between px-4 py-2 cursor-pointer text-sm border-b last:border-0 ${
-                        isSelected ? "bg-muted font-medium" : "hover:bg-muted"
-                      }`}
-                    >
-                      <div className="flex flex-col">
-                        <span>{tag.tag_name}</span>
-                        <span className="text-xs text-muted-foreground">
-                          {tag.category}
-                        </span>
-                      </div>
-                      {isSelected && <Check className="w-4 h-4 text-black" />}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+            {/* Actions */}
+            <div className="flex gap-2">
+              <Button type="button" onClick={applyFilters}>
+                Apply
+              </Button>
+              {hasDraftFilters && (
+                <Button type="button" variant="outline" onClick={clearFilters}>
+                  Clear
+                </Button>
+              )}
+            </div>
           </div>
         </div>
-
-        {/* Open during this window */}
-        <div className="flex flex-col gap-2">
-          <label htmlFor="open_from" className="text-sm font-medium">
-            Open from
-          </label>
-          <Input
-            type="time"
-            id="open_from"
-            value={openFrom}
-            onChange={(e) => setOpenFrom(e.target.value)}
-          />
-        </div>
-        <div className="flex flex-col gap-2">
-          <label htmlFor="open_until" className="text-sm font-medium">
-            Open until
-          </label>
-          <Input
-            type="time"
-            id="open_until"
-            value={openUntil}
-            onChange={(e) => setOpenUntil(e.target.value)}
-          />
-        </div>
-
-        {/* Actions */}
-        <div className="flex gap-2">
-          <Button type="button" onClick={applyFilters}>
-            Apply
-          </Button>
-          {hasActiveFilters && (
-            <Button type="button" variant="outline" onClick={clearFilters}>
-              Clear
-            </Button>
-          )}
-        </div>
-      </div>
+      )}
     </div>
   );
 }
