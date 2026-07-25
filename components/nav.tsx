@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import {
   NavigationMenu,
   NavigationMenuItem,
-  NavigationMenuLink,
   NavigationMenuList,
 } from "@/components/ui/navigation-menu";
 import {
@@ -20,6 +19,7 @@ import {
 } from "@/components/ui/sheet";
 
 import AuthButton from "@/components/auth-buttons";
+import NavLink from "@/components/nav-link";
 import UserAvatar from "@/components/user-avatar";
 
 import useUser from "@/hooks/useUser";
@@ -32,42 +32,53 @@ const ROLE_NAV_MENU_ITEMS: Record<string, MenuItem[]> = {
         { title: "Itineraries", url: "/tourist/itineraries" },
     ],
     business_owner: [
-        { title: "Home", url: ROLE_HOME_PATH.business_owner },
+        { title: "Home", url: ROLE_HOME_PATH.business_owner, exact: true },
         { title: "Listings", url: "/business-owner/listings" },
         { title: "Insights", url: "/business-owner/analytics" },
     ],
 };
 
 export default function Nav() {
-  
+
   // useUser gets the data from the UserContext, which is populated in the root layout
   const { profile } = useUser();
 
-  const NAV_MENU_ITEMS = profile?.role 
-    ? ROLE_NAV_MENU_ITEMS[profile.role] || [] 
+  const NAV_MENU_ITEMS = profile?.role
+    ? ROLE_NAV_MENU_ITEMS[profile.role] || []
     : [];
 
   return (
-    <section className="p-4 border-b">
+    // The bottom border is the line the desktop active/hover underline sits on,
+    // so vertical padding lives on the rows below (not the section) -- that lets
+    // each desktop link stretch full-height and anchor its underline to it.
+    <section className="border-b px-4">
       <div className="container mx-auto">
         {/* Desktop Menu */}
-        <nav className="hidden justify-between lg:flex">
-          <div className="flex items-center gap-6">
-            <Logo />
+        <div className="hidden h-16 items-stretch justify-between lg:flex">
+          <div className="flex items-stretch gap-6">
             <div className="flex items-center">
-              <NavigationMenu>
-                <NavigationMenuList>
-                  {NAV_MENU_ITEMS.map((item) => renderMenuItem(item))}
-                </NavigationMenuList>
-              </NavigationMenu>
+              <Logo />
             </div>
+            <NavigationMenu viewport={false} className="h-full max-w-none items-stretch">
+              <NavigationMenuList className="h-full items-stretch gap-1">
+                {NAV_MENU_ITEMS.map((item) => (
+                  <NavigationMenuItem key={item.title} className="flex">
+                    <NavLink href={item.url} exact={item.exact}>
+                      {item.title}
+                    </NavLink>
+                  </NavigationMenuItem>
+                ))}
+              </NavigationMenuList>
+            </NavigationMenu>
           </div>
 
-          <UserAvatar />
-        </nav>
+          <div className="flex items-center">
+            <UserAvatar />
+          </div>
+        </div>
 
         {/* Mobile Menu */}
-        <div className="block lg:hidden">
+        <div className="block py-4 lg:hidden">
           <div className="flex items-center justify-between">
             <Logo />
             <Sheet>
@@ -82,8 +93,17 @@ export default function Nav() {
                     <Logo />
                   </SheetTitle>
                 </SheetHeader>
-                <div className="flex flex-col gap-6 p-4">
-                  {NAV_MENU_ITEMS.map((item) => renderMobileMenuItem(item))}
+                <div className="flex flex-col gap-2 p-4">
+                  {NAV_MENU_ITEMS.map((item) => (
+                    <NavLink
+                      key={item.title}
+                      href={item.url}
+                      exact={item.exact}
+                      variant="mobile"
+                    >
+                      {item.title}
+                    </NavLink>
+                  ))}
 
                   <AuthButton />
                 </div>
@@ -101,27 +121,6 @@ const Logo = () => {
     <Link href="/" className="flex items-center gap-2">
       <Sparkle className="size-5" />
       <span className="text-lg font-semibold tracking-tighter">TourIt</span>
-    </Link>
-  );
-};
-
-const renderMenuItem = (item: MenuItem) => {
-  return (
-    <NavigationMenuItem key={item.title}>
-      <NavigationMenuLink
-        href={item.url}
-        className="group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-muted hover:text-accent-foreground"
-      >
-        {item.title}
-      </NavigationMenuLink>
-    </NavigationMenuItem>
-  );
-};
-
-const renderMobileMenuItem = (item: MenuItem) => {
-  return (
-    <Link key={item.title} href={item.url} className="text-md font-semibold">
-      {item.title}
     </Link>
   );
 };
