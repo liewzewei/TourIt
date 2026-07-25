@@ -16,6 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import ThemeControls from "@/components/theme-controls";
 
 import createClient from "@/lib/supabase/client";
 import useUser from "@/hooks/useUser";
@@ -106,6 +107,14 @@ export default function UserAvatar() {
             <span>Profile</span>
           </Link>
         </DropdownMenuItem>
+
+        <DropdownMenuSeparator />
+
+        {/* Plain buttons (not menu items), so switching theme/palette doesn't
+            close the menu. */}
+        <div className="px-2 py-1.5">
+          <ThemeControls />
+        </div>
 
         <DropdownMenuSeparator />
 

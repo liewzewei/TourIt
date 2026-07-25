@@ -1,5 +1,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import ThemeControls from "@/components/theme-controls";
 
 import createClient from "@/lib/supabase/server";
 import { UserResponse } from "@supabase/supabase-js";
@@ -36,6 +37,15 @@ export default async function ProfilePage() {
           <p className="text-muted-foreground truncate text-xs font-normal">
             {displayEmail}
           </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Appearance</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ThemeControls className="max-w-xs" />
         </CardContent>
       </Card>
     </section>
