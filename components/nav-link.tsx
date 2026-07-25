@@ -64,14 +64,16 @@ export default function NavLink({
       href={href}
       onClick={onNavigate}
       data-active={active || undefined}
-      className="group/navlink relative flex h-full items-center px-1 outline-none focus-visible:outline-none"
+      className="group/navlink relative flex h-full items-center px-4 text-sm font-medium text-muted-foreground outline-none transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-3 focus-visible:ring-inset focus-visible:ring-ring/50 data-active:bg-muted/60 data-active:text-foreground"
     >
-      <span className="rounded-md px-3 py-1.5 text-sm font-medium text-muted-foreground transition-[color,background-color,transform,box-shadow] group-hover/navlink:scale-105 group-hover/navlink:bg-muted group-hover/navlink:text-foreground group-focus-visible/navlink:ring-3 group-focus-visible/navlink:ring-ring/50 group-data-active/navlink:scale-105 group-data-active/navlink:text-foreground">
+      {/* Shade fills the whole cell (top of the bar to the bottom border); only
+          the text scales, so neighbours don't shift. */}
+      <span className="transition-transform group-hover/navlink:scale-105 group-data-active/navlink:scale-105">
         {children}
       </span>
       <span
         aria-hidden
-        className="pointer-events-none absolute inset-x-2 bottom-0 h-[2px] origin-bottom scale-y-0 rounded-full bg-primary/70 transition-all group-hover/navlink:scale-y-100 group-data-active/navlink:h-[3px] group-data-active/navlink:scale-y-100 group-data-active/navlink:bg-primary"
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-[2px] origin-bottom scale-y-0 bg-primary/70 transition-all group-hover/navlink:scale-y-100 group-data-active/navlink:h-[3px] group-data-active/navlink:scale-y-100 group-data-active/navlink:bg-primary"
       />
     </Link>
   );
