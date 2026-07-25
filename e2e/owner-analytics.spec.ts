@@ -56,6 +56,6 @@ test("business owner sees their analytics dashboard", async ({ page }) => {
     page.getByRole("heading", { name: "Marina Bay Sands SkyPark", level: 1 }),
   ).toBeVisible();
   await expect(
-    page.getByRole("link", { name: "← All listings" }),
+    page.getByRole("link", { name: "All listings" }),
   ).toBeVisible();
 });

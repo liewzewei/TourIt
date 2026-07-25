@@ -5,6 +5,7 @@ import createClient from '@/lib/supabase/client';
 import Link from 'next/link';
 import { generateItinerarySchedule, ScheduleItem } from './generate-actions';
 import { Button } from '@/components/ui/button';
+import BackLink from '@/components/back-link';
 import DateField from '@/components/ui/date-field';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/context/toast-context';
@@ -187,18 +188,13 @@ export default function ItineraryViewPage({ params }: { params: Promise<{ id: st
 
   return (
     <main className="p-8 max-w-4xl mx-auto">
-      <div className="flex items-center justify-between mb-8 border-b pb-4">
-        <h1 className="text-3xl font-bold text-foreground">{itinerary.itinerary_name}</h1>
-        <div className="flex gap-4 items-center">
+      <div className="mb-8 border-b pb-4">
+        <BackLink href="/tourist/itineraries">Back to all itineraries</BackLink>
+        <div className="mt-2 flex flex-wrap items-center justify-between gap-4">
+          <h1 className="text-3xl font-bold text-foreground">{itinerary.itinerary_name}</h1>
           <Button onClick={() => setShowGenerateModal(true)}>
-            ✨ Generate AI Schedule
+            Generate AI Schedule
           </Button>
-          <Link 
-            href="/tourist/itineraries" 
-            className="text-sm text-primary hover:underline"
-          >
-            &larr; Back to all itineraries
-          </Link>
         </div>
       </div>
       
