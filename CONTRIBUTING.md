@@ -5,7 +5,6 @@ How we work on TourIt: environment, branches, commits, pull requests, and the mi
 - **Set up your environment:** [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)
 - **Run tests + git hooks:** [docs/TESTING.md](docs/TESTING.md)
 - **Understand the codebase:** [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
-- **Record what you changed:** [docs/ISSUES.md](docs/ISSUES.md)
 
 ## Git hooks (automatic)
 
@@ -63,9 +62,8 @@ docs: restructure README into README + docs/
 ## Pull requests
 
 1. Push your branch and open a PR against `main`.
-2. **Log the change** in [docs/ISSUES.md](docs/ISSUES.md) — what changed, why, tradeoffs, follow-ups, plus any issue you hit while doing the work. This belongs in the same PR as the change, not a later cleanup.
-3. **CI must pass** ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)): Lint & Type Check and Unit Tests run on every push; the E2E suite runs on PRs to `main` against a Supabase stack spun up inside the runner (details in [docs/TESTING.md](docs/TESTING.md#cicd-pipeline)).
-4. Merge to `main` via pull request once green.
+2. **CI must pass** ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)): Lint & Type Check and Unit Tests run on every push; the E2E suite runs on PRs to `main` against a Supabase stack spun up inside the runner (details in [docs/TESTING.md](docs/TESTING.md#cicd-pipeline)).
+3. Merge to `main` via pull request once green.
 
 ## Database migrations & deployment
 
