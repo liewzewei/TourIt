@@ -6,7 +6,8 @@ import { useRouter } from "next/navigation";
 import { hasTimeOverlap } from "@/lib/itinerary-overlap";
 import { isValidTimeRange, isWithinOperatingHours } from "@/lib/time-constraints";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import DateField from "@/components/ui/date-field";
+import TimeRangeField from "@/components/ui/time-range-field";
 import { useToast } from "@/context/toast-context";
 
 type ItineraryOption = { id: string; itinerary_name: string };
@@ -216,40 +217,17 @@ export default function AddToItineraryButton({ listingId }: { listingId: string 
                 <>
                   <div>
                     <label className="block text-sm font-medium mb-1">Visit Date</label>
-                    <Input
-                      type="date"
-                      value={startDate}
-                      onChange={(e) => setStartDate(e.target.value)}
-                      required={!letAiDecide}
-                    />
+                    <DateField value={startDate} onChange={setStartDate} />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Start Time</label>
-                      <Input
-                        type="time"
-                        value={startTime}
-                        onChange={(e) => setStartTime(e.target.value)}
-                        required={!letAiDecide}
-                        aria-invalid={rangeInvalid}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-1">End Time</label>
-                      <Input
-                        type="time"
-                        value={endTime}
-                        onChange={(e) => setEndTime(e.target.value)}
-                        required={!letAiDecide}
-                        aria-invalid={rangeInvalid}
-                      />
-                    </div>
-                  </div>
-
-                  {rangeInvalid && (
-                    <p className="text-sm text-destructive">End time must be after start time.</p>
-                  )}
+                  <TimeRangeField
+                    startValue={startTime}
+                    endValue={endTime}
+                    onStartChange={setStartTime}
+                    onEndChange={setEndTime}
+                    startLabel="Start Time"
+                    endLabel="End Time"
+                  />
                 </>
               )}
 

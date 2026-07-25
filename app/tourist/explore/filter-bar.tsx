@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { ChevronDown, SlidersHorizontal } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import TimeField from "@/components/ui/time-field";
 import TagMultiSelect, { type Tag } from "@/components/tag-multi-select";
 import { cn } from "@/lib/utils";
 
@@ -97,26 +97,20 @@ export default function FilterBar({
             />
 
             {/* Open during this window */}
-            <div className="flex flex-col gap-2">
+            <div className="flex w-36 flex-col gap-2">
               <label htmlFor="open_from" className="text-sm font-medium">
                 Open from
               </label>
-              <Input
-                type="time"
-                id="open_from"
-                value={openFrom}
-                onChange={(e) => setOpenFrom(e.target.value)}
-              />
+              <TimeField id="open_from" value={openFrom} onChange={setOpenFrom} />
             </div>
-            <div className="flex flex-col gap-2">
+            <div className="flex w-36 flex-col gap-2">
               <label htmlFor="open_until" className="text-sm font-medium">
                 Open until
               </label>
-              <Input
-                type="time"
+              <TimeField
                 id="open_until"
                 value={openUntil}
-                onChange={(e) => setOpenUntil(e.target.value)}
+                onChange={setOpenUntil}
               />
             </div>
 

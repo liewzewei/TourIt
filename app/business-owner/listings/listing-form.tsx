@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import TimeRangeField from "@/components/ui/time-range-field";
 import TagMultiSelect, { type Tag } from "@/components/tag-multi-select";
 import { useToast } from "@/context/toast-context";
 import { isValidTimeRange } from "@/lib/time-constraints";
@@ -208,43 +209,22 @@ export default function ListingForm({ availableTags }: { availableTags: Tag[] })
           Open 24 hours
         </label>
 
-        <div className="grid grid-cols-2 gap-4">
-          {/* The hours pair shares one range error and becomes a TimeRangeField
-              in the date/time epic; for now they move onto the Input primitive
-              so their focus ring matches every other field. */}
-          <div>
-            <label htmlFor="open_time" className="block text-sm font-medium">Opening Time {!is24Hours && "*"}</label>
-            <Input
-              type="time"
-              id="open_time"
-              name="open_time"
-              value={openTime}
-              onChange={(e) => setOpenTime(e.target.value)}
-              disabled={is24Hours}
-              required={!is24Hours}
-              aria-invalid={hoursRangeInvalid}
-              className="mt-1"
-            />
-          </div>
-          <div>
-            <label htmlFor="close_time" className="block text-sm font-medium">Closing Time {!is24Hours && "*"}</label>
-            <Input
-              type="time"
-              id="close_time"
-              name="close_time"
-              value={closeTime}
-              onChange={(e) => setCloseTime(e.target.value)}
-              disabled={is24Hours}
-              required={!is24Hours}
-              aria-invalid={hoursRangeInvalid}
-              className="mt-1"
-            />
-          </div>
-        </div>
-
-        {hoursRangeInvalid && (
-          <p className="text-sm text-destructive">Closing time must be after opening time.</p>
-        )}
+        {/* The hours pair shares one range error. Names carry the values into
+            the server action; the DB CHECK stays the authoritative guard. */}
+        <TimeRangeField
+          startValue={openTime}
+          endValue={closeTime}
+          onStartChange={setOpenTime}
+          onEndChange={setCloseTime}
+          startLabel={is24Hours ? "Opening Time" : "Opening Time *"}
+          endLabel={is24Hours ? "Closing Time" : "Closing Time *"}
+          startName="open_time"
+          endName="close_time"
+          startId="open_time"
+          endId="close_time"
+          disabled={is24Hours}
+          error="Closing time must be after opening time."
+        />
       </div>
 
       <TagMultiSelect

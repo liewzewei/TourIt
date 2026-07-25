@@ -5,7 +5,7 @@ import createClient from '@/lib/supabase/client';
 import Link from 'next/link';
 import { generateItinerarySchedule, ScheduleItem } from './generate-actions';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import DateField from '@/components/ui/date-field';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/context/toast-context';
 import { useConfirm } from '@/context/confirm-context';
@@ -300,11 +300,11 @@ export default function ItineraryViewPage({ params }: { params: Promise<{ id: st
                 </p>
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-1">Start Date</label>
-                  <Input type="date" value={genStartDate} onChange={e => setGenStartDate(e.target.value)} />
+                  <DateField value={genStartDate} onChange={setGenStartDate} />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-1">End Date</label>
-                  <Input type="date" value={genEndDate} onChange={e => setGenEndDate(e.target.value)} />
+                  <DateField value={genEndDate} onChange={setGenEndDate} />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-1">Remarks (optional)</label>
