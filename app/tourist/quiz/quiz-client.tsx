@@ -180,7 +180,7 @@ export default function QuizClient({ tags, userId }: { tags: Tag[], userId: stri
           size="lg" 
           onClick={handleSkip}
           disabled={isSubmitting}
-          className="w-32 h-14 rounded-full text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive shadow-sm transition-all hover:scale-105"
+          className="w-32 h-14 rounded-full text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
         >
           Skip
         </Button>
@@ -189,7 +189,7 @@ export default function QuizClient({ tags, userId }: { tags: Tag[], userId: stri
           size="lg" 
           onClick={handleInterested}
           disabled={isSubmitting}
-          className="w-32 h-14 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-md transition-all hover:scale-105"
+          className="w-32 h-14 rounded-full"
         >
           {isSubmitting ? "Saving..." : "Interested"}
         </Button>

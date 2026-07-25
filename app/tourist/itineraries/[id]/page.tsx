@@ -4,6 +4,9 @@ import { useEffect, useState, use } from 'react';
 import createClient from '@/lib/supabase/client';
 import Link from 'next/link';
 import { generateItinerarySchedule, ScheduleItem } from './generate-actions';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/context/toast-context';
 import { useConfirm } from '@/context/confirm-context';
 
@@ -187,12 +190,9 @@ export default function ItineraryViewPage({ params }: { params: Promise<{ id: st
       <div className="flex items-center justify-between mb-8 border-b pb-4">
         <h1 className="text-3xl font-bold text-foreground">{itinerary.itinerary_name}</h1>
         <div className="flex gap-4 items-center">
-          <button
-            onClick={() => setShowGenerateModal(true)}
-            className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition font-medium"
-          >
+          <Button onClick={() => setShowGenerateModal(true)}>
             ✨ Generate AI Schedule
-          </button>
+          </Button>
           <Link 
             href="/tourist/itineraries" 
             className="text-sm text-primary hover:underline"
@@ -205,12 +205,9 @@ export default function ItineraryViewPage({ params }: { params: Promise<{ id: st
       {activities.length === 0 ? (
         <div className="p-12 bg-muted rounded-lg text-center border border-dashed">
           <p className="text-muted-foreground mb-6">No activities have been added to this itinerary yet.</p>
-          <Link 
-            href="/tourist/explore" 
-            className="inline-block bg-primary text-primary-foreground px-6 py-2 rounded-md hover:bg-primary/90 transition"
-          >
-            Explore Listings to Add
-          </Link>
+          <Button asChild>
+            <Link href="/tourist/explore">Explore Listings to Add</Link>
+          </Button>
         </div>
       ) : (
         <div className="space-y-6">
@@ -303,32 +300,27 @@ export default function ItineraryViewPage({ params }: { params: Promise<{ id: st
                 </p>
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-1">Start Date</label>
-                  <input type="date" value={genStartDate} onChange={e => setGenStartDate(e.target.value)} className="w-full border rounded p-2" />
+                  <Input type="date" value={genStartDate} onChange={e => setGenStartDate(e.target.value)} />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-1">End Date</label>
-                  <input type="date" value={genEndDate} onChange={e => setGenEndDate(e.target.value)} className="w-full border rounded p-2" />
+                  <Input type="date" value={genEndDate} onChange={e => setGenEndDate(e.target.value)} />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-1">Remarks (optional)</label>
-                  <textarea 
-                    value={genRemarks} 
-                    onChange={e => setGenRemarks(e.target.value)} 
+                  <Textarea
+                    value={genRemarks}
+                    onChange={e => setGenRemarks(e.target.value)}
                     placeholder="E.g., I prefer a relaxed pace."
-                    className="w-full border rounded p-2 h-24"
                     maxLength={200}
                   />
                 </div>
                 
                 <div className="flex justify-end gap-3 mt-6">
-                  <button onClick={() => setShowGenerateModal(false)} className="px-4 py-2 text-muted-foreground hover:bg-muted rounded">Cancel</button>
-                  <button 
-                    onClick={handleGenerate}
-                    disabled={isGenerating}
-                    className="px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90 disabled:opacity-50 flex items-center gap-2"
-                  >
+                  <Button variant="ghost" onClick={() => setShowGenerateModal(false)}>Cancel</Button>
+                  <Button onClick={handleGenerate} disabled={isGenerating}>
                     {isGenerating ? "Generating..." : "Generate Schedule"}
-                  </button>
+                  </Button>
                 </div>
               </div>
             ) : (
@@ -344,19 +336,12 @@ export default function ItineraryViewPage({ params }: { params: Promise<{ id: st
                   ))}
                 </div>
                 <div className="flex justify-end gap-3 mt-4">
-                  <button 
-                    onClick={() => { setGeneratedSchedule(null); setShowGenerateModal(false); }} 
-                    className="px-4 py-2 text-muted-foreground hover:bg-muted rounded transition"
-                  >
+                  <Button variant="ghost" onClick={() => { setGeneratedSchedule(null); setShowGenerateModal(false); }}>
                     Discard
-                  </button>
-                  <button 
-                    onClick={handleSaveSchedule} 
-                    disabled={isSaving}
-                    className="px-4 py-2 bg-primary text-primary-foreground font-medium rounded hover:bg-primary/90 transition disabled:opacity-50"
-                  >
+                  </Button>
+                  <Button onClick={handleSaveSchedule} disabled={isSaving}>
                     {isSaving ? "Saving..." : "Save to Itinerary"}
-                  </button>
+                  </Button>
                 </div>
               </div>
             )}

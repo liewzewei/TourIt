@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import createClient from '@/lib/supabase/client';
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { useToast } from '@/context/toast-context';
 import { useConfirm } from '@/context/confirm-context';
 
@@ -94,21 +96,19 @@ export default function ItinerariesPage() {
         <h1 className="text-3xl font-bold text-foreground mb-0">My Itineraries</h1>
         <p className="text-muted-foreground mb-12 mt-1">Plan, organize, and manage your upcoming adventures.</p>
         
-        <form onSubmit={handleCreateItinerary} className="flex gap-4 w-full md:w-1/3 min-w-[420px]">
-          <input 
-            type="text" 
+        <form onSubmit={handleCreateItinerary} className="flex items-stretch gap-4 w-full md:w-1/3 min-w-[420px]">
+          <Input
+            type="text"
+            aria-label="Itinerary name"
             value={newItineraryName}
             onChange={(e) => setNewItineraryName(e.target.value)}
-            placeholder="Name your next trip..." 
-            className="flex-1 px-4 py-2.5 border border-input rounded-md focus:outline-none focus:ring-1 focus:ring-ring"
+            placeholder="Name your next trip..."
+            className="flex-1"
             required
           />
-          <button 
-            type="submit"
-            className="bg-primary text-primary-foreground px-10 py-2.5 rounded-md hover:bg-primary/90 transition whitespace-nowrap font-medium"
-          >
+          <Button type="submit" className="px-8 whitespace-nowrap">
             Create
-          </button>
+          </Button>
         </form>
       </div>
 
