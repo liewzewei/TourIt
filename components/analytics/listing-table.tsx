@@ -42,11 +42,17 @@ export default function ListingTable({
         </thead>
         <tbody>
           {sorted.map((r) => (
-            <tr key={r.listing_id} className="border-b last:border-0 hover:bg-muted">
+            <tr
+              key={r.listing_id}
+              className="group relative border-b transition-colors last:border-0 hover:bg-muted"
+            >
               <td className="px-4 py-3">
+                {/* The stretched ::after makes the whole row the click target
+                    (the row is the positioned ancestor) while this stays a real,
+                    keyboard-focusable link. */}
                 <Link
                   href={`/business-owner/analytics/${r.listing_id}`}
-                  className="font-medium text-primary hover:underline"
+                  className="font-medium text-primary group-hover:font-semibold after:absolute after:inset-0"
                 >
                   {r.listing_name}
                 </Link>

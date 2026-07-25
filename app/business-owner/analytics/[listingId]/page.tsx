@@ -1,10 +1,10 @@
 import { Suspense } from "react";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import createClient from "@/lib/supabase/server";
 import { firstValue } from "@/lib/explore-params";
-import { parsePeriod, PERIOD_LABELS, type Period } from "@/lib/analytics-params";
+import { parsePeriod, PERIOD_LABELS } from "@/lib/analytics-params";
+import BackLink from "@/components/back-link";
 import {
   saveRate,
   deltaPct,
@@ -52,7 +52,9 @@ export default async function ListingAnalyticsPage({
     );
     return (
       <main className="mx-auto max-w-6xl p-8">
-        <BackLink period={period} />
+        <BackLink href={`/business-owner/analytics?period=${period}`}>
+          All listings
+        </BackLink>
         <p className="mt-4 text-muted-foreground">
           Failed to load analytics. Please try again.
         </p>
@@ -93,7 +95,9 @@ export default async function ListingAnalyticsPage({
   return (
     <main className="mx-auto max-w-6xl p-8">
       <div className="mb-6">
-        <BackLink period={period} />
+        <BackLink href={`/business-owner/analytics?period=${period}`}>
+          All listings
+        </BackLink>
         <div className="mt-2 flex flex-wrap items-center justify-between gap-4">
           <h1 className="text-3xl font-bold">{row.listing_name}</h1>
           <div className="flex items-center gap-3">
@@ -150,16 +154,5 @@ export default async function ListingAnalyticsPage({
         <AudiencePanel data={audience} scopeLabel="this listing" />
       </div>
     </main>
-  );
-}
-
-function BackLink({ period }: { period: Period }) {
-  return (
-    <Link
-      href={`/business-owner/analytics?period=${period}`}
-      className="text-sm text-muted-foreground transition hover:text-foreground"
-    >
-      ← All listings
-    </Link>
   );
 }

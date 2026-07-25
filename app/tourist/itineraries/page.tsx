@@ -125,19 +125,27 @@ export default function ItinerariesPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-16">
             {itineraries.map((itinerary) => (
-              <div 
-                key={itinerary.id} 
-                className="relative flex flex-col border border-border rounded-lg p-6 bg-card hover:border-ring transition-colors h-48 shadow-sm group"
+              <div
+                key={itinerary.id}
+                className="group relative flex h-48 flex-col rounded-lg border border-border bg-card p-6 shadow-sm transition-all lift"
               >
-                
+                {/* Whole-card click target. It paints above the static content
+                    (which is click-through) but below the delete button, so the
+                    card navigates while the delete corner stays independent. */}
+                <Link
+                  href={`/tourist/itineraries/${itinerary.id}`}
+                  aria-label={`View ${itinerary.itinerary_name}`}
+                  className="absolute inset-0 z-0 rounded-lg"
+                />
+
                 {/* Title Container */}
                 <div className="mb-4 pr-12">
                   <h2 className="text-lg font-semibold text-foreground relative z-10 pointer-events-none line-clamp-2">
                     {itinerary.itinerary_name}
                   </h2>
-                  
+
                   {/* Delete Button */}
-                  <button 
+                  <button
                     onClick={(e) => handleDeleteItinerary(e, itinerary.id)}
                     className="absolute top-3 right-3 z-50 flex items-center justify-center p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-md transition-colors"
                     aria-label="Delete Itinerary"
@@ -146,12 +154,9 @@ export default function ItinerariesPage() {
                   </button>
                 </div>
 
-                <Link 
-                  href={`/tourist/itineraries/${itinerary.id}`}
-                  className="mt-auto text-sm text-muted-foreground relative z-10 font-medium group-hover:text-foreground transition-colors"
-                >
+                <span className="mt-auto text-sm text-muted-foreground relative z-10 font-medium pointer-events-none transition-colors group-hover:font-semibold group-hover:text-foreground">
                   View schedule &rarr;
-                </Link>
+                </span>
               </div>
             ))}
           </div>
