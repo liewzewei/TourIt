@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useRef, useState } from "react";
 import { createListing, saveListingImages, type ActionState } from "./action";
 import { X, Check, ChevronDown } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/context/toast-context";
 import { isValidTimeRange } from "@/lib/time-constraints";
 import createClient from "@/lib/supabase/client";
@@ -190,8 +191,22 @@ export default function ListingForm({ availableTags }: { availableTags: Tag[] })
 
       <div>
         <label htmlFor="listing_description" className="block text-sm font-medium">Description</label>
-        <textarea id="listing_description" name="listing_description" 
-        placeholder="Describe your business -- what makes it special, what do you offer, who is it for? (100-200 words)" className="mt-1 block w-full rounded-md border border-input p-2" />
+        {/* rows sizes the box to fit the placeholder prompt; field-sizing-fixed
+            overrides the primitive's content-sizing so the box stays put and
+            scrolls once a description outgrows it, rather than growing without
+            bound. The word-count guidance moves out of the placeholder (which
+            the box is sized to) into help text below. */}
+        <Textarea
+          id="listing_description"
+          name="listing_description"
+          rows={4}
+          placeholder="Describe your business — what makes it special, what do you offer, and who is it for?"
+          aria-describedby="listing_description_help"
+          className="mt-1 field-sizing-fixed"
+        />
+        <p id="listing_description_help" className="mt-1 text-sm text-muted-foreground">
+          Aim for 100–200 words.
+        </p>
       </div>
 
       <div>
