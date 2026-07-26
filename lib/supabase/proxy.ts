@@ -83,7 +83,7 @@ export default async function updateSession(request: NextRequest) {
     }
     
     // Redirect fully onboarded users to their respective dashboards if they wander off
-    if (user && role !== null && onboardingCompleted && !path.startsWith(ROLE_HOME_PATH[role]!) && !path.startsWith("/auth") && !path.startsWith("/settings")) {
+    if (user && role !== null && onboardingCompleted && !path.startsWith(ROLE_HOME_PATH[role]!) && !path.startsWith("/auth") && !path.startsWith("/settings") && !path.startsWith("/tourist/quiz")) {
         const url = request.nextUrl.clone();
         url.pathname = ROLE_HOME_PATH[role] || "/";
         return NextResponse.redirect(url);

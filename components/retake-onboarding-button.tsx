@@ -1,14 +1,29 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { RefreshCw } from "lucide-react";
-import Link from "next/link";
+import { RefreshCw, Loader2 } from "lucide-react";
 
 export default function RetakeOnboardingButton() {
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+
   return (
-    <Button variant="outline" asChild>
-      <Link href="/tourist/quiz">
+    <Button
+      variant="outline"
+      disabled={isLoading}
+      onClick={() => {
+        setIsLoading(true);
+        router.push("/tourist/quiz");
+      }}
+    >
+      {isLoading ? (
+        <Loader2 className="mr-2 size-4 animate-spin" />
+      ) : (
         <RefreshCw className="mr-2 size-4" />
-        Retake Onboarding
-      </Link>
+      )}
+      {isLoading ? "Loading..." : "Retake Onboarding"}
     </Button>
   );
 }
