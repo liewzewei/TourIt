@@ -47,6 +47,7 @@ export default async function BusinessOwnerHomePage() {
           <ListingCard
             key={listing.id}
             name={listing.listing_name}
+            href={`/business-owner/listings/${listing.id}`}
             description={listing.listing_description}
             address={listing.listing_address}
             openTime={listing.open_time}
