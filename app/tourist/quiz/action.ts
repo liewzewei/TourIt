@@ -2,34 +2,20 @@
 
 import createClient from "@/lib/supabase/server";
 
-export async function resetOnboarding() {
+export async function markOnboardingComplete(selectedTagIds: string[]) {
   const supabase = await createClient();
 
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error("Not authenticated");
 
-  // Delete existing tags
+  // Always delete existing tags first so we don't violate unique constraints
+  // or leave stale tags when a user retakes onboarding.
   const { error: deleteError } = await supabase
     .from("tourist_tags")
     .delete()
     .eq("profile_id", user.id);
 
   if (deleteError) throw new Error(deleteError.message);
-
-  // Set onboarding_completed to false
-  const { error: updateError } = await supabase
-    .from("profiles")
-    .update({ onboarding_completed: false })
-    .eq("id", user.id);
-
-  if (updateError) throw new Error(updateError.message);
-}
-
-export async function markOnboardingComplete(selectedTagIds: string[]) {
-  const supabase = await createClient();
-
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) throw new Error("Not authenticated");
 
   if (selectedTagIds.length > 0) {
     const insertData = selectedTagIds.map(tagId => ({
