@@ -53,26 +53,27 @@ export default function Nav() {
     // each desktop link stretch full-height and anchor its underline to it.
     <section className="border-b px-4">
       <div className="container mx-auto">
-        {/* Desktop Menu */}
-        <div className="hidden h-16 items-stretch justify-between lg:flex">
-          <div className="flex items-stretch gap-6">
-            <div className="flex items-center">
-              <Logo />
-            </div>
-            <NavigationMenu viewport={false} className="h-full max-w-none items-stretch">
-              <NavigationMenuList className="h-full items-stretch gap-1">
-                {NAV_MENU_ITEMS.map((item) => (
-                  <NavigationMenuItem key={item.title} className="flex">
-                    <NavLink href={item.url} exact={item.exact}>
-                      {item.title}
-                    </NavLink>
-                  </NavigationMenuItem>
-                ))}
-              </NavigationMenuList>
-            </NavigationMenu>
+        {/* Desktop Menu -- three columns (1fr / auto / 1fr) so the links sit
+            dead-centre regardless of the logo and avatar widths; the logo stays
+            pinned left and the avatar right. */}
+        <div className="hidden h-16 grid-cols-[1fr_auto_1fr] items-stretch lg:grid">
+          <div className="flex items-center">
+            <Logo />
           </div>
 
-          <div className="flex items-center">
+          <NavigationMenu viewport={false} className="h-full max-w-none items-stretch">
+            <NavigationMenuList className="h-full items-stretch gap-1">
+              {NAV_MENU_ITEMS.map((item) => (
+                <NavigationMenuItem key={item.title} className="flex">
+                  <NavLink href={item.url} exact={item.exact}>
+                    {item.title}
+                  </NavLink>
+                </NavigationMenuItem>
+              ))}
+            </NavigationMenuList>
+          </NavigationMenu>
+
+          <div className="flex items-center justify-end">
             <UserAvatar />
           </div>
         </div>
