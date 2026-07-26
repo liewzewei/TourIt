@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import Link from "next/link";
+import { resetOnboarding } from "@/app/tourist/quiz/action";
 import { usePathname, useRouter } from "next/navigation";
 
-import { User, UserCircle, LogOut, ArrowRightIcon } from "lucide-react";
+import { User, UserCircle, LogOut, ArrowRightIcon, RefreshCw } from "lucide-react";
 
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -28,6 +29,7 @@ export default function UserAvatar() {
   const router = useRouter();
   const supabase = createClient();
   const [open, setOpen] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
   // Hide entirely on the login page
   if (pathname === LOGIN_PATH) return null;
@@ -107,6 +109,22 @@ export default function UserAvatar() {
             <span>Profile</span>
           </Link>
         </DropdownMenuItem>
+
+        {profile?.role === "tourist" && (
+          <DropdownMenuItem 
+            className="gap-2"
+            disabled={isPending}
+            onClick={() => {
+              startTransition(async () => {
+                await resetOnboarding();
+                window.location.href = "/tourist/quiz";
+              });
+            }}
+          >
+            <RefreshCw className="size-4" />
+            <span>Retake Onboarding</span>
+          </DropdownMenuItem>
+        )}
 
         <DropdownMenuSeparator />
 
