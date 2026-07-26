@@ -87,7 +87,8 @@ where id = '22222222-2222-2222-2222-222222222222';
 -- ---------------------------------------------------------------------------
 insert into public.listings (
   id, profile_id, listing_name, listing_description, listing_address,
-  open_time, close_time, is_24_hours
+  open_time, close_time, is_24_hours,
+  latitude, longitude, directions_tip, unit_number
 )
 values
   ('10000000-0000-0000-0000-000000000001',
@@ -95,37 +96,43 @@ values
    'Marina Bay Sands SkyPark',
    'Observation deck with panoramic views over Marina Bay and the city skyline.',
    '10 Bayfront Ave, Singapore 018956',
-   '09:30', '22:00', false),
+   '09:30', '22:00', false,
+   1.2834, 103.8607, 'Take the Tower 3 elevator to Level 57', '#57-01'),
   ('10000000-0000-0000-0000-000000000002',
    '11111111-1111-1111-1111-111111111111',
    'Newton Food Centre',
    'Bustling hawker centre famous for chilli crab, satay and local favourites.',
    '500 Clemenceau Ave North, Singapore 229495',
-   '16:00', '23:59', false),
+   '16:00', '23:59', false,
+   1.3120, 103.8389, 'Right next to Newton MRT Station Exit B', '#01-01'),
   ('10000000-0000-0000-0000-000000000003',
    '11111111-1111-1111-1111-111111111111',
    'Gardens by the Bay',
    'Futuristic nature park with the Supertree Grove and climate-controlled domes.',
    '18 Marina Gardens Dr, Singapore 018953',
-   '09:00', '21:00', false),
+   '09:00', '21:00', false,
+   1.2816, 103.8636, 'Enter via the underground linkway from Bayfront MRT', null),
   ('10000000-0000-0000-0000-000000000004',
    '11111111-1111-1111-1111-111111111111',
    'Mustafa Centre',
    'Sprawling 24-hour department store in Little India selling just about everything.',
    '145 Syed Alwi Rd, Singapore 207704',
-   null, null, true),
+   null, null, true,
+   1.3100, 103.8558, 'Enter via Entrance 2 on Syed Alwi Road', '#01-100'),
   ('10000000-0000-0000-0000-000000000005',
    '11111111-1111-1111-1111-111111111111',
    'National Museum of Singapore',
    'The nation''s oldest museum, tracing Singapore''s history and culture.',
    '93 Stamford Rd, Singapore 178897',
-   '10:00', '19:00', false),
+   '10:00', '19:00', false,
+   1.2966, 103.8485, '5-minute walk from Bras Basah MRT Exit B', '#01-01'),
   ('10000000-0000-0000-0000-000000000006',
    '11111111-1111-1111-1111-111111111111',
    'Tiong Bahru Bakery',
    'Artisanal bakery and cafe known for its croissants in a heritage estate.',
    '56 Eng Hoon St, #01-70, Singapore 160056',
-   '08:00', '20:00', false)
+   '08:00', '20:00', false,
+   1.2848, 103.8329, 'Across from Tiong Bahru Market', '#01-70')
 on conflict (id) do nothing;
 
 -- ---------------------------------------------------------------------------

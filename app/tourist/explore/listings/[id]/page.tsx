@@ -111,14 +111,42 @@ export default async function ListingDetailsPage({
         <p className="text-foreground whitespace-pre-wrap">{listing.listing_description}</p>
       </div>
 
-      <div className="bg-muted p-6 rounded-lg border">
-        <h3 className="font-semibold mb-2">Details</h3>
-        <p>📍 <span className="font-semibold">Address:</span> {listing.listing_address || "No address provided"}</p>
+      <div className="bg-muted p-6 rounded-lg border space-y-3">
+        <h3 className="font-semibold text-lg">Location & Details</h3>
+        
+        <div>
+          <p>📍 <span className="font-semibold">Address:</span> {listing.listing_address || "No address provided"}</p>
+          {listing.unit_number && (
+            <p className="text-sm text-muted-foreground ml-5">Unit: {listing.unit_number}</p>
+          )}
+        </div>
+
+        {listing.directions_tip && (
+          <div className="bg-background/80 p-3 rounded-md border text-sm">
+            <p className="font-medium text-primary">💡 How to Get There:</p>
+            <p className="text-muted-foreground mt-0.5">{listing.directions_tip}</p>
+          </div>
+        )}
+
         {listing.is_24_hours ? (
           <p>🕒 <span className="font-semibold">Operation Hours:</span> Open 24 hours</p>
         ) : listing.open_time && listing.close_time ? (
           <p>🕒 <span className="font-semibold">Operation Hours:</span> {listing.open_time.slice(0, 5)} - {listing.close_time.slice(0, 5)}</p>
         ) : null}
+
+        {/* --- NEW: Get Directions Button using saved coordinates --- */}
+        {listing.latitude && listing.longitude && (
+          <div className="pt-2">
+            <a
+              href={`https://www.google.com/maps/dir/?api=1&destination=${listing.latitude},${listing.longitude}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm"
+            >
+              🗺️ Open in Google Maps ↗
+            </a>
+          </div>
+        )}
       </div>
     </main>
   );
