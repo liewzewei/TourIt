@@ -14,21 +14,23 @@ test("tourist completes quiz, explores, and schedules a listing", async ({
   await page.goto("/");
   await expect(page).toHaveURL(/\/tourist\/quiz/);
 
-  // Derive the number of cards from the "Tag X of N" counter rather than
-  // hardcoding it (quiz/page.tsx fetches up to 15 tags).
-  const counter = page.getByText(/Tag \d+ of \d+/);
-  await expect(counter).toBeVisible();
-  const total = Number((await counter.textContent())?.match(/of (\d+)/)?.[1]);
-  expect(total).toBeGreaterThan(0);
+  // Wait for the tag grid to load
+  await expect(page.getByText(/Select up to 3 things/i)).toBeVisible();
 
-  // Like the first few tags (exercises the tourist_tags insert), skip the rest.
-  // Either button advances; the action on the final card completes onboarding
-  // and redirects to explore. Playwright auto-waits for each button to re-enable
-  // between cards (the "Interested" insert briefly disables them).
-  for (let i = 0; i < total; i++) {
-    const label = i < 3 ? "Interested" : "Skip";
-    await page.getByRole("button", { name: label, exact: true }).click();
+  // Select up to 3 tags.
+  const tagContainer = page.locator('.flex-wrap');
+  const tagButtons = tagContainer.getByRole("button");
+  await tagButtons.first().waitFor();
+  
+  const count = Math.min(3, await tagButtons.count());
+  for (let i = 0; i < count; i++) {
+    await tagButtons.nth(i).click();
   }
+
+  // Submit the selected tags
+  const continueButton = page.getByRole("button", { name: "Continue", exact: true });
+  await expect(continueButton).toBeEnabled();
+  await continueButton.click();
 
   // Quiz complete → personalized feed.
   await expect(page).toHaveURL(/\/tourist\/explore/);
