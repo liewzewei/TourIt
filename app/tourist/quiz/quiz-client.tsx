@@ -50,8 +50,7 @@ export default function QuizClient({
           description: "Successfully updated your interests.",
           variant: "success",
         });
-        router.push("/settings/profile");
-        router.refresh();
+        window.location.href = "/settings/profile";
       } else {
         router.push("/tourist/explore");
       }
