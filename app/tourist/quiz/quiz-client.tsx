@@ -5,16 +5,27 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { markOnboardingComplete } from "./action"; 
 
+import { useToast } from "@/context/toast-context";
+
 type Tag = {
   id: string;
   tag_name: string;
   category?: string;
 };
 
-export default function QuizClient({ tags }: { tags: Tag[] }) {
-  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
+export default function QuizClient({ 
+  tags, 
+  initialSelectedTagIds = [], 
+  isRetake = false 
+}: { 
+  tags: Tag[], 
+  initialSelectedTagIds?: string[], 
+  isRetake?: boolean 
+}) {
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>(initialSelectedTagIds);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
+  const { toast } = useToast();
 
   const toggleTag = (tagId: string) => {
     setSelectedTagIds((prev) => {
@@ -32,7 +43,18 @@ export default function QuizClient({ tags }: { tags: Tag[] }) {
     setIsSubmitting(true);
     try {
       await markOnboardingComplete(selectedTagIds);
-      router.push("/tourist/explore");
+      
+      if (isRetake) {
+        toast({
+          title: "Interests updated",
+          description: "Successfully updated your interests.",
+          variant: "success",
+        });
+        router.push("/settings/profile");
+        router.refresh();
+      } else {
+        router.push("/tourist/explore");
+      }
     } catch (err) {
       console.error("Failed to complete onboarding:", err);
       setIsSubmitting(false);
