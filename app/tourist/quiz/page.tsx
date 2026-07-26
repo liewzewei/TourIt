@@ -27,7 +27,7 @@ export default async function QuizPage() {
       <h1 className="text-3xl font-bold mb-8 text-center">What are you interested in?</h1>
       
       {/* 3. Pass the fetched data down to the interactive client component */}
-      <QuizClient tags={tags || []} userId={user.id} />
+      <QuizClient tags={tags || []} />
     </div>
   );
 }
