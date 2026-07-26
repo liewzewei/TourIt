@@ -48,10 +48,13 @@ export default function Nav() {
     : [];
 
   return (
-    // The bottom border is the line the desktop active/hover underline sits on,
-    // so vertical padding lives on the rows below (not the section) -- that lets
-    // each desktop link stretch full-height and anchor its underline to it.
-    <section className="border-b px-4">
+    // Sticky so the bar stays pinned to the top on scroll (it keeps its place in
+    // flow, so no content offset is needed); the opaque background + z-index let
+    // the page scroll underneath it. The bottom border is the line the desktop
+    // active/hover underline sits on, so vertical padding lives on the rows below
+    // (not the section) -- that lets each desktop link stretch full-height and
+    // anchor its underline to it.
+    <section className="sticky top-0 z-40 border-b bg-background px-4">
       <div className="container mx-auto">
         {/* Desktop Menu -- three columns (1fr / auto / 1fr) so the links sit
             dead-centre regardless of the logo and avatar widths; the logo stays
