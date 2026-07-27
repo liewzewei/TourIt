@@ -108,9 +108,11 @@ export default async function ListingDetailsPage({
         </div>
       )}
 
-      <div className="bg-card p-6 rounded-lg shadow-sm border mb-6">
-        <p className="text-foreground whitespace-pre-wrap">{listing.listing_description}</p>
-      </div>
+      {listing.listing_description && (
+        <div className="bg-card p-6 rounded-lg shadow-sm border mb-6">
+          <p className="text-foreground whitespace-pre-wrap">{listing.listing_description}</p>
+        </div>
+      )}
 
       <div className="bg-muted p-6 rounded-lg border space-y-3">
         <h3 className="font-semibold text-lg">Location & Details</h3>

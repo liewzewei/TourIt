@@ -91,9 +91,11 @@ export default async function OwnerListingDetailsPage({
       )}
 
       {/* Description Box */}
-      <div className="bg-card p-6 rounded-lg shadow-sm border mb-6">
-        <p className="text-foreground whitespace-pre-wrap">{listing.listing_description}</p>
-      </div>
+      {listing.listing_description && (
+        <div className="bg-card p-6 rounded-lg shadow-sm border mb-6">
+          <p className="text-foreground whitespace-pre-wrap">{listing.listing_description}</p>
+        </div>
+      )}
 
       {/* Location & Details Box */}
       <div className="bg-muted p-6 rounded-lg border space-y-3">
