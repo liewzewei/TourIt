@@ -78,11 +78,6 @@ export default function ItineraryDayMap({ stops }: { stops: MapStop[] }) {
   }, [stops]);
 
   return (
-    <div className="flex flex-col gap-2">
-      <div ref={containerRef} className="w-full h-[500px] rounded-lg border shadow-sm z-0 overflow-hidden bg-muted" />
-      <p className="text-xs text-muted-foreground text-center">
-        💡 Pins are numbered in the order of your schedule for this day. Click any pin to see details.
-      </p>
-    </div>
+    <div className="w-full h-[500px] rounded-lg border shadow-sm z-0 overflow-hidden bg-muted" ref={containerRef} />
   );
 }

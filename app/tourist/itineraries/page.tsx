@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/context/toast-context';
 import { useConfirm } from '@/context/confirm-context';
+import { Trash2 } from 'lucide-react';
 
 type Itinerary = {
   id: string;
@@ -150,7 +151,7 @@ export default function ItinerariesPage() {
                     className="absolute top-3 right-3 z-50 flex items-center justify-center p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-md transition-colors"
                     aria-label="Delete Itinerary"
                   >
-                    <span>🗑️</span>
+                    <Trash2 className="h-4 w-4" />
                   </button>
                 </div>
 

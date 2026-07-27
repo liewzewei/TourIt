@@ -12,6 +12,7 @@ import DateField from '@/components/ui/date-field';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/context/toast-context';
 import { useConfirm } from '@/context/confirm-context';
+import { MapPin, Clock, Trash2, Sparkles, CalendarDays } from 'lucide-react';
 
 type ItineraryListing = {
   itinerary_id: string;
@@ -270,8 +271,9 @@ export default function ItineraryViewPage({ params }: { params: Promise<{ id: st
                       <h3 className="text-lg font-semibold text-foreground leading-tight">
                         {activity.listings?.listing_name}
                       </h3>
-                      <p className="text-muted-foreground text-xs mt-1">
-                        📍 {activity.listings?.listing_address || 'No address provided'}
+                      <p className="text-muted-foreground text-xs mt-1 flex items-center gap-1">
+                        <MapPin className="h-3 w-3 flex-shrink-0" />
+                        <span>{activity.listings?.listing_address || 'No address provided'}</span>
                       </p>
                     </div>
                   </div>
@@ -279,9 +281,12 @@ export default function ItineraryViewPage({ params }: { params: Promise<{ id: st
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <div className="text-right bg-accent/40 px-3 py-2 rounded text-xs">
                       {activity.start_time ? (
-                        <p className="text-accent-foreground font-semibold">
-                          🕒 {activity.start_time.slice(0, 5)} 
-                          {activity.end_time ? ` - ${activity.end_time.slice(0, 5)}` : ''}
+                        <p className="text-accent-foreground font-semibold flex items-center gap-1">
+                          <Clock className="h-3 w-3 flex-shrink-0" />
+                          <span>
+                            {activity.start_time.slice(0, 5)} 
+                            {activity.end_time ? ` - ${activity.end_time.slice(0, 5)}` : ''}
+                          </span>
                         </p>
                       ) : (
                         <p className="text-muted-foreground italic">Time not set</p>
@@ -294,7 +299,7 @@ export default function ItineraryViewPage({ params }: { params: Promise<{ id: st
                       className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded transition"
                       title="Remove from itinerary"
                     >
-                      🗑️
+                      <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
                 </div>
@@ -347,12 +352,20 @@ export default function ItineraryViewPage({ params }: { params: Promise<{ id: st
               </div>
             ) : (
               <div>
-                <h3 className="text-lg font-semibold text-success mb-3">✨ Generated Successfully!</h3>
+                <h3 className="text-lg font-semibold text-success mb-3 flex items-center gap-1.5">
+                  <Sparkles className="h-5 w-5" />
+                  <span>Generated Successfully!</span>
+                </h3>
                 <div className="space-y-3 mb-6 max-h-60 overflow-y-auto pr-2">
                   {generatedSchedule.map((item, i) => (
                     <div key={i} className="p-3 border rounded bg-muted text-sm">
                       <p className="font-bold">{item.listing_name}</p>
-                      <p className="text-muted-foreground">📅 {item.scheduled_date} 🕒 {item.suggested_start_time} - {item.suggested_end_time}</p>
+                      <p className="text-muted-foreground flex items-center gap-1 flex-wrap">
+                        <CalendarDays className="h-3.5 w-3.5 flex-shrink-0" />
+                        <span>{item.scheduled_date}</span>
+                        <Clock className="h-3.5 w-3.5 flex-shrink-0 ml-1" />
+                        <span>{item.suggested_start_time} - {item.suggested_end_time}</span>
+                      </p>
                       <p className="text-muted-foreground italic mt-1">&quot;{item.reason}&quot;</p>
                     </div>
                   ))}

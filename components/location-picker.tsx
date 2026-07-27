@@ -6,7 +6,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { MapPin, Search } from "lucide-react";
+import { Search } from "lucide-react";
 
 type LocationPickerProps = {
   /** Current coordinates (if any) — used to place the initial marker */
@@ -199,6 +199,7 @@ export default function LocationPicker({
         mapRef.current = null;
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Sync external coords prop onto map
