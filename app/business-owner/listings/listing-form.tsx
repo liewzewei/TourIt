@@ -43,6 +43,7 @@ export default function ListingForm({ availableTags }: { availableTags: Tag[] })
   const [addressLine, setAddressLine] = useState("");
   const [unitNum, setUnitNum] = useState("");
   const [directionsTip, setDirectionsTip] = useState("");
+  const [showExtraLocation, setShowExtraLocation] = useState(false);
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
 
   const handleLocationPicked = (result: {
@@ -221,63 +222,78 @@ export default function ListingForm({ availableTags }: { availableTags: Tag[] })
         <LocationPicker coords={coords} onLocationSelect={handleLocationPicked} />
 
         {/* Address fields — auto-filled by map, but editable */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="md:col-span-2">
-            <Field label="Street Address, City & Country" required>
+        <Field label="Street Address, City & Country" required>
+          {(f) => (
+            <Input
+              {...f}
+              type="text"
+              name="listing_address"
+              required
+              placeholder="Auto-filled when you drop a pin, or type manually"
+              value={addressLine}
+              onChange={(e) => setAddressLine(e.target.value)}
+            />
+          )}
+        </Field>
+
+        {/* Toggle for extra location details */}
+        <label className="flex items-center gap-2 text-sm font-medium pt-1">
+          <input
+            type="checkbox"
+            checked={showExtraLocation}
+            onChange={(e) => setShowExtraLocation(e.target.checked)}
+            className="h-4 w-4 rounded border-input"
+          />
+          Add extra location details
+        </label>
+
+        {showExtraLocation ? (
+          <div className="flex flex-col gap-4 pl-6 border-l-2 border-muted">
+            <Field label="Postal / Zip Code">
               {(f) => (
                 <Input
                   {...f}
                   type="text"
-                  name="listing_address"
-                  required
-                  placeholder="Auto-filled when you drop a pin, or type manually"
-                  value={addressLine}
-                  onChange={(e) => setAddressLine(e.target.value)}
+                  name="postal_code"
+                  placeholder="e.g. 75007"
+                  value={postalCode}
+                  onChange={(e) => setPostalCode(e.target.value)}
                 />
               )}
             </Field>
-          </div>
-          <Field label="Postal / Zip Code" description="Optional">
-            {(f) => (
-              <Input
-                {...f}
-                type="text"
-                name="postal_code"
-                placeholder="e.g. 75007"
-                value={postalCode}
-                onChange={(e) => setPostalCode(e.target.value)}
-              />
-            )}
-          </Field>
-        </div>
 
-        {/* Optional details — compact row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Field label="Unit / Floor (Optional)">
-            {(f) => (
-              <Input
-                {...f}
-                type="text"
-                name="unit_number"
-                placeholder="e.g. #01-15 or Suite 402"
-                value={unitNum}
-                onChange={(e) => setUnitNum(e.target.value)}
-              />
-            )}
-          </Field>
-          <Field label="How to Get There (Optional)">
-            {(f) => (
-              <Input
-                {...f}
-                type="text"
-                name="directions_tip"
-                placeholder="e.g. Enter via the North Gate"
-                value={directionsTip}
-                onChange={(e) => setDirectionsTip(e.target.value)}
-              />
-            )}
-          </Field>
-        </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Field label="Unit / Floor">
+                {(f) => (
+                  <Input
+                    {...f}
+                    type="text"
+                    name="unit_number"
+                    placeholder="e.g. #01-15 or Suite 402"
+                    value={unitNum}
+                    onChange={(e) => setUnitNum(e.target.value)}
+                  />
+                )}
+              </Field>
+              <Field label="How to Get There">
+                {(f) => (
+                  <Input
+                    {...f}
+                    type="text"
+                    name="directions_tip"
+                    placeholder="e.g. Enter via the North Gate"
+                    value={directionsTip}
+                    onChange={(e) => setDirectionsTip(e.target.value)}
+                  />
+                )}
+              </Field>
+            </div>
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            Postal code, unit/floor, and directions can be added here.
+          </p>
+        )}
 
         {/* Coordinates confirmation */}
         {coords && (
