@@ -152,7 +152,13 @@ export default function AddToItineraryButton({ listingId }: { listingId: string 
 
     if (error) {
       console.error(error);
-      toast({ variant: "destructive", description: "Failed to add to itinerary." });
+      if (error.code === '23505') {
+        toast({ variant: "destructive", description: "This place is already in your itinerary!" });
+      } else if (error.message?.includes('operating hours')) {
+        toast({ variant: "destructive", description: "Selected time is outside the venue's operating hours!" });
+      } else {
+        toast({ variant: "destructive", description: error.message || "Failed to add to itinerary." });
+      }
     } else {
       toast({ variant: "success", description: "Added to your itinerary." });
       setIsOpen(false);

@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ImageIcon } from "lucide-react";
+import { ImageIcon, MapPin, Clock } from "lucide-react";
 
 import { getListingImageUrl } from "@/lib/listing-images";
 
@@ -81,11 +81,15 @@ export default function ListingCard({
           </div>
         )}
 
-        <div className="mt-auto border-t pt-4 text-sm text-muted-foreground">
-          <p>📍 {address || "Location unavailable"}</p>
+        <div className="mt-auto border-t pt-4 text-sm text-muted-foreground space-y-1">
+          <p className="flex items-center gap-1.5">
+            <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
+            <span>{address || "Location unavailable"}</span>
+          </p>
           {(openTime || closeTime) && (
-            <p>
-              🕒 {openTime} - {closeTime}
+            <p className="flex items-center gap-1.5">
+              <Clock className="h-3.5 w-3.5 flex-shrink-0" />
+              <span>{openTime} - {closeTime}</span>
             </p>
           )}
         </div>

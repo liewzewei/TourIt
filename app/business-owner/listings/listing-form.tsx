@@ -1,8 +1,9 @@
 "use client";
 
 import { useActionState, useEffect, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import { createListing, saveListingImages, type ActionState } from "./action";
-import { X } from "lucide-react";
+import { X, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -19,6 +20,10 @@ import {
   validateImageFiles,
 } from "@/lib/listing-images";
 
+const LocationPicker = dynamic(() => import("@/components/location-picker"), {
+  ssr: false,
+});
+
 // A picked file paired with its preview URL. Kept together in one array so the
 // two can never drift out of sync, and so revoking on removal is trivial.
 type SelectedImage = { file: File; previewUrl: string };
@@ -32,6 +37,25 @@ export default function ListingForm({ availableTags }: { availableTags: Tag[] })
   const [images, setImages] = useState<SelectedImage[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
+
+  // --- Location & Address State ---
+  const [postalCode, setPostalCode] = useState("");
+  const [addressLine, setAddressLine] = useState("");
+  const [unitNum, setUnitNum] = useState("");
+  const [directionsTip, setDirectionsTip] = useState("");
+  const [showExtraLocation, setShowExtraLocation] = useState(false);
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
+
+  const handleLocationPicked = (result: {
+    lat: number;
+    lng: number;
+    address?: string;
+    postalCode?: string;
+  }) => {
+    setCoords({ lat: result.lat, lng: result.lng });
+    if (result.address) setAddressLine(result.address);
+    if (result.postalCode) setPostalCode(result.postalCode);
+  };
 
   // Object URLs must be released manually or they leak for the page's lifetime.
   // Removal revokes eagerly (see removeImage); this pair of effects tracks the
@@ -186,9 +210,100 @@ export default function ListingForm({ availableTags }: { availableTags: Tag[] })
         )}
       </Field>
 
-      <Field label="Address">
-        {(f) => <Input {...f} type="text" name="listing_address" />}
-      </Field>
+      {/* --- LOCATION & MAP --- */}
+      <div className="space-y-4 rounded-lg border p-4 bg-muted/20">
+        <h3 className="text-sm font-semibold">Location</h3>
+
+        {/* Hidden inputs for lat/lng */}
+        <input type="hidden" name="latitude" value={coords?.lat ?? ""} />
+        <input type="hidden" name="longitude" value={coords?.lng ?? ""} />
+
+        {/* Interactive Map with search */}
+        <LocationPicker coords={coords} onLocationSelect={handleLocationPicked} />
+
+        {/* Address fields — auto-filled by map, but editable */}
+        <Field label="Street Address, City & Country" required>
+          {(f) => (
+            <Input
+              {...f}
+              type="text"
+              name="listing_address"
+              required
+              placeholder="Auto-filled when you drop a pin, or type manually"
+              value={addressLine}
+              onChange={(e) => setAddressLine(e.target.value)}
+            />
+          )}
+        </Field>
+
+        {/* Toggle for extra location details */}
+        <label className="flex items-center gap-2 text-sm font-medium pt-1">
+          <input
+            type="checkbox"
+            checked={showExtraLocation}
+            onChange={(e) => setShowExtraLocation(e.target.checked)}
+            className="h-4 w-4 rounded border-input"
+          />
+          Add extra location details
+        </label>
+
+        {showExtraLocation ? (
+          <div className="flex flex-col gap-4 pl-6 border-l-2 border-muted">
+            <Field label="Postal / Zip Code">
+              {(f) => (
+                <Input
+                  {...f}
+                  type="text"
+                  name="postal_code"
+                  placeholder="e.g. 75007"
+                  value={postalCode}
+                  onChange={(e) => setPostalCode(e.target.value)}
+                />
+              )}
+            </Field>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Field label="Unit / Floor">
+                {(f) => (
+                  <Input
+                    {...f}
+                    type="text"
+                    name="unit_number"
+                    placeholder="e.g. #01-15 or Suite 402"
+                    value={unitNum}
+                    onChange={(e) => setUnitNum(e.target.value)}
+                  />
+                )}
+              </Field>
+              <Field label="How to Get There">
+                {(f) => (
+                  <Input
+                    {...f}
+                    type="text"
+                    name="directions_tip"
+                    placeholder="e.g. Enter via the North Gate"
+                    value={directionsTip}
+                    onChange={(e) => setDirectionsTip(e.target.value)}
+                  />
+                )}
+              </Field>
+            </div>
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            Postal code, unit/floor, and directions can be added here.
+          </p>
+        )}
+
+        {/* Coordinates confirmation */}
+        {coords && (
+          <p className="text-xs text-emerald-600 font-medium flex items-center gap-1">
+            <Check className="h-3.5 w-3.5" />
+            <span>Coordinates locked:</span>
+            <span className="font-mono">({coords.lat.toFixed(5)}, {coords.lng.toFixed(5)})</span>
+          </p>
+        )}
+      </div>
 
       <div className="space-y-2">
         <label className="flex items-center gap-2 text-sm font-medium">

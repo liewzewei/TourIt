@@ -3,6 +3,8 @@
 import { useEffect, useState, use } from 'react';
 import createClient from '@/lib/supabase/client';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
+const ItineraryDayMap = dynamic(() => import('@/components/itinerary-day-map'), { ssr: false });
 import { generateItinerarySchedule, ScheduleItem } from './generate-actions';
 import { Button } from '@/components/ui/button';
 import BackLink from '@/components/back-link';
@@ -10,6 +12,7 @@ import DateField from '@/components/ui/date-field';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/context/toast-context';
 import { useConfirm } from '@/context/confirm-context';
+import { MapPin, Clock, Trash2, Sparkles, CalendarDays } from 'lucide-react';
 
 type ItineraryListing = {
   itinerary_id: string;
@@ -21,6 +24,8 @@ type ItineraryListing = {
   listings: {
     listing_name: string;
     listing_address: string;
+    latitude?: number | null;
+    longitude?: number | null;
   };
 };
 
@@ -56,6 +61,17 @@ export default function ItineraryViewPage({ params }: { params: Promise<{ id: st
   
   // Filter activities to only show ones for the current selected day
   const currentActivities = activities.filter(a => (a.start_date || "Unscheduled") === uniqueDates[currentDateIndex]);
+  // --- Calculate numbered map pins for this day ---
+  const mapStops = currentActivities
+    .filter(a => a.listings?.latitude != null && a.listings?.longitude != null)
+    .map((a, idx) => ({
+      id: a.listing_id,
+      name: a.listings?.listing_name || "Unknown",
+      address: a.listings?.listing_address,
+      latitude: a.listings.latitude!,
+      longitude: a.listings.longitude!,
+      number: idx + 1,
+    }));
 
   const handleGenerate = async () => {
     if (!genStartDate || !genEndDate) {
@@ -168,7 +184,7 @@ export default function ItineraryViewPage({ params }: { params: Promise<{ id: st
       // 2. Fetch Activities (Itinerary Listings) ordered by time
       const { data: activitiesData, error } = await supabase
         .from('itinerary_listings')
-        .select('*, listings(listing_name, listing_address)')
+        .select('*, listings(listing_name, listing_address, latitude, longitude)')
         .eq('itinerary_id', id)
         .order('start_date', { ascending: true })
         .order('start_time', { ascending: true });
@@ -235,51 +251,66 @@ export default function ItineraryViewPage({ params }: { params: Promise<{ id: st
             </div>
           )}
 
-          {/* Activity List */}
-          <div className="space-y-4">
-            {currentActivities.map((activity) => (
-              <div 
-                key={`${activity.itinerary_id}-${activity.listing_id}`}
-                className="relative pr-16 p-6 border rounded-lg bg-card shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4"
-              >
-                <div>
-                  <h3 className="text-xl font-semibold text-foreground">
-                    {activity.listings?.listing_name}
-                  </h3>
-                  <p className="text-muted-foreground text-sm mt-1">
-                    📍 {activity.listings?.listing_address || 'No address provided'}
-                  </p>
-                </div>
-                
-                <div className="flex items-center gap-4">
-                  <div className="text-left md:text-right bg-accent/40 p-4 rounded-md min-w-[200px]">
-                    {activity.start_date ? (
-                      <p className="text-accent-foreground font-medium">
-                        📅 {new Date(activity.start_date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric'})}
+          {/* Side-by-Side Schedule and Map Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+            
+            {/* Left Column: Numbered Activity List */}
+            <div className="space-y-4">
+              {currentActivities.map((activity, idx) => (
+                <div 
+                  key={`${activity.itinerary_id}-${activity.listing_id}`}
+                  className="relative p-5 border rounded-lg bg-card shadow-sm flex items-start justify-between gap-3 hover:border-primary/50 transition-colors"
+                >
+                  <div className="flex items-start gap-3 flex-grow">
+                    {/* Matching Step Number Badge */}
+                    <div className="flex-shrink-0 w-7 h-7 rounded-full bg-primary text-primary-foreground font-bold flex items-center justify-center text-xs mt-0.5 shadow">
+                      {idx + 1}
+                    </div>
+
+                    <div>
+                      <h3 className="text-lg font-semibold text-foreground leading-tight">
+                        {activity.listings?.listing_name}
+                      </h3>
+                      <p className="text-muted-foreground text-xs mt-1 flex items-center gap-1">
+                        <MapPin className="h-3 w-3 flex-shrink-0" />
+                        <span>{activity.listings?.listing_address || 'No address provided'}</span>
                       </p>
-                    ) : (
-                      <p className="text-muted-foreground text-sm italic">Date not set</p>
-                    )}
-                    
-                    {activity.start_time && (
-                      <p className="text-accent-foreground text-sm mt-2">
-                        🕒 {activity.start_time.slice(0, 5)} 
-                        {activity.end_time ? ` - ${activity.end_time.slice(0, 5)}` : ''}
-                      </p>
-                    )}
+                    </div>
                   </div>
                   
-                  {/* Delete Button */}
-                  <button
-                    onClick={() => handleRemoveActivity(activity.listing_id)}
-                    className="p-3 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-md transition"
-                    title="Remove from itinerary"
-                  >
-                    🗑️
-                  </button>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <div className="text-right bg-accent/40 px-3 py-2 rounded text-xs">
+                      {activity.start_time ? (
+                        <p className="text-accent-foreground font-semibold flex items-center gap-1">
+                          <Clock className="h-3 w-3 flex-shrink-0" />
+                          <span>
+                            {activity.start_time.slice(0, 5)} 
+                            {activity.end_time ? ` - ${activity.end_time.slice(0, 5)}` : ''}
+                          </span>
+                        </p>
+                      ) : (
+                        <p className="text-muted-foreground italic">Time not set</p>
+                      )}
+                    </div>
+                    
+                    {/* Delete Button */}
+                    <button
+                      onClick={() => handleRemoveActivity(activity.listing_id)}
+                      className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded transition"
+                      title="Remove from itinerary"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
+
+            {/* Right Column: Sticky Day Map */}
+            <div className="sticky top-6">
+              <ItineraryDayMap stops={mapStops} />
+            </div>
+
           </div>
         </div>
       )}
@@ -321,12 +352,20 @@ export default function ItineraryViewPage({ params }: { params: Promise<{ id: st
               </div>
             ) : (
               <div>
-                <h3 className="text-lg font-semibold text-success mb-3">✨ Generated Successfully!</h3>
+                <h3 className="text-lg font-semibold text-success mb-3 flex items-center gap-1.5">
+                  <Sparkles className="h-5 w-5" />
+                  <span>Generated Successfully!</span>
+                </h3>
                 <div className="space-y-3 mb-6 max-h-60 overflow-y-auto pr-2">
                   {generatedSchedule.map((item, i) => (
                     <div key={i} className="p-3 border rounded bg-muted text-sm">
                       <p className="font-bold">{item.listing_name}</p>
-                      <p className="text-muted-foreground">📅 {item.scheduled_date} 🕒 {item.suggested_start_time} - {item.suggested_end_time}</p>
+                      <p className="text-muted-foreground flex items-center gap-1 flex-wrap">
+                        <CalendarDays className="h-3.5 w-3.5 flex-shrink-0" />
+                        <span>{item.scheduled_date}</span>
+                        <Clock className="h-3.5 w-3.5 flex-shrink-0 ml-1" />
+                        <span>{item.suggested_start_time} - {item.suggested_end_time}</span>
+                      </p>
                       <p className="text-muted-foreground italic mt-1">&quot;{item.reason}&quot;</p>
                     </div>
                   ))}
