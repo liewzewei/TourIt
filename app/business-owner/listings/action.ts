@@ -169,6 +169,7 @@ export async function updateListing(
       is_24_hours,
       open_time: is_24_hours ? null : open_time,
       close_time: is_24_hours ? null : close_time,
+      postal_code,
       latitude,
       longitude,
       unit_number,

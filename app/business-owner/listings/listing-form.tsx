@@ -51,12 +51,18 @@ export default function ListingForm({
   const { toast } = useToast();
 
   // --- Location & Address State ---
-  const [postalCode, setPostalCode] = useState("");
-  const [addressLine, setAddressLine] = useState("");
-  const [unitNum, setUnitNum] = useState("");
-  const [directionsTip, setDirectionsTip] = useState("");
-  const [showExtraLocation, setShowExtraLocation] = useState(false);
-  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [postalCode, setPostalCode] = useState(initialData?.postal_code || "");
+  const [addressLine, setAddressLine] = useState(initialData?.listing_address || "");
+  const [unitNum, setUnitNum] = useState(initialData?.unit_number || "");
+  const [directionsTip, setDirectionsTip] = useState(initialData?.directions_tip || "");
+  const [showExtraLocation, setShowExtraLocation] = useState(
+    !!(initialData?.postal_code || initialData?.unit_number || initialData?.directions_tip)
+  );
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(
+    initialData?.latitude && initialData?.longitude
+      ? { lat: initialData.latitude, lng: initialData.longitude }
+      : null
+  );
 
   const handleLocationPicked = (result: {
     lat: number;

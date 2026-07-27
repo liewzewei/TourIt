@@ -4,6 +4,7 @@ import Link from "next/link";
 import ListingImageCarousel from "@/components/listing-image-carousel";
 import BackLink from "@/components/back-link";
 import { LOGIN_PATH } from "@/constants/common";
+import { Pencil, MapPin, Clock, Lightbulb, ExternalLink } from "lucide-react";
 
 export default async function OwnerListingDetailsPage({
   params,
@@ -61,7 +62,7 @@ export default async function OwnerListingDetailsPage({
           href={`/business-owner/listings/${listing.id}/edit`}
           className="inline-flex items-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm whitespace-nowrap"
         >
-          ✏️ Edit Listing
+          <Pencil className="h-4 w-4" /> Edit Listing
         </Link>
       </div>
 
@@ -99,23 +100,35 @@ export default async function OwnerListingDetailsPage({
         <h3 className="font-semibold text-lg">Location & Details</h3>
         
         <div>
-          <p>📍 <span className="font-semibold">Address:</span> {listing.listing_address || "No address provided"}</p>
+          <p className="flex items-start gap-1.5">
+            <MapPin className="h-4 w-4 flex-shrink-0 mt-0.5" />
+            <span><span className="font-semibold">Address:</span> {listing.listing_address || "No address provided"}</span>
+          </p>
           {listing.unit_number && (
-            <p className="text-sm text-muted-foreground ml-5">Unit: {listing.unit_number}</p>
+            <p className="text-sm text-muted-foreground ml-5.5">Unit: {listing.unit_number}</p>
           )}
         </div>
 
         {listing.directions_tip && (
           <div className="bg-background/80 p-3 rounded-md border text-sm">
-            <p className="font-medium text-primary">💡 How to Get There:</p>
+            <p className="font-medium text-primary flex items-center gap-1.5">
+              <Lightbulb className="h-4 w-4 flex-shrink-0" />
+              <span>How to Get There:</span>
+            </p>
             <p className="text-muted-foreground mt-0.5">{listing.directions_tip}</p>
           </div>
         )}
 
         {listing.is_24_hours ? (
-          <p>🕒 <span className="font-semibold">Operation Hours:</span> Open 24 hours</p>
+          <p className="flex items-center gap-1.5">
+            <Clock className="h-4 w-4 flex-shrink-0" />
+            <span><span className="font-semibold">Operation Hours:</span> Open 24 hours</span>
+          </p>
         ) : listing.open_time && listing.close_time ? (
-          <p>🕒 <span className="font-semibold">Operation Hours:</span> {listing.open_time.slice(0, 5)} - {listing.close_time.slice(0, 5)}</p>
+          <p className="flex items-center gap-1.5">
+            <Clock className="h-4 w-4 flex-shrink-0" />
+            <span><span className="font-semibold">Operation Hours:</span> {listing.open_time.slice(0, 5)} - {listing.close_time.slice(0, 5)}</span>
+          </p>
         ) : null}
 
         {/* Google Maps Button using coordinates */}
@@ -127,7 +140,7 @@ export default async function OwnerListingDetailsPage({
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm"
             >
-              🗺️ Open in Google Maps ↗
+              Open in Google Maps <ExternalLink className="h-3.5 w-3.5" />
             </a>
           </div>
         )}
