@@ -3,7 +3,8 @@
 
 import { useActionState, useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
-import { createListing, saveListingImages, type ActionState } from "./action";
+import { useRouter } from "next/navigation";
+import { createListing, updateListing, saveListingImages, type ActionState } from "./action";
 import { X, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
