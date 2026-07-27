@@ -1,8 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useActionState, useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
-import { createListing, saveListingImages, type ActionState } from "./action";
+import { useRouter } from "next/navigation";
+import { createListing, updateListing, saveListingImages, type ActionState } from "./action";
 import { X, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
@@ -28,23 +30,39 @@ const LocationPicker = dynamic(() => import("@/components/location-picker"), {
 // two can never drift out of sync, and so revoking on removal is trivial.
 type SelectedImage = { file: File; previewUrl: string };
 
-export default function ListingForm({ availableTags }: { availableTags: Tag[] }) {
-  const [state, formAction, isPending] = useActionState<ActionState, FormData>(createListing, null);
-  const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
-  const [is24Hours, setIs24Hours] = useState(false);
-  const [openTime, setOpenTime] = useState("");
-  const [closeTime, setCloseTime] = useState("");
+export default function ListingForm({
+  availableTags,
+  initialData,
+}: {
+  availableTags: Tag[];
+  initialData?: any;
+}) {
+  const router = useRouter();
+  const actionToRun = initialData ? updateListing.bind(null, initialData.id) : createListing;
+  const [state, formAction, isPending] = useActionState<ActionState, FormData>(actionToRun, null);
+  const [selectedTags, setSelectedTags] = useState<Tag[]>(
+    initialData?.listing_tags?.map((rel: any) => rel.tags).filter(Boolean) || []
+  );
+  const [is24Hours, setIs24Hours] = useState(initialData?.is_24_hours || false);
+  const [openTime, setOpenTime] = useState(initialData?.open_time || "");
+  const [closeTime, setCloseTime] = useState(initialData?.close_time || "");
   const [images, setImages] = useState<SelectedImage[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
 
   // --- Location & Address State ---
-  const [postalCode, setPostalCode] = useState("");
-  const [addressLine, setAddressLine] = useState("");
-  const [unitNum, setUnitNum] = useState("");
-  const [directionsTip, setDirectionsTip] = useState("");
-  const [showExtraLocation, setShowExtraLocation] = useState(false);
-  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [postalCode, setPostalCode] = useState(initialData?.postal_code || "");
+  const [addressLine, setAddressLine] = useState(initialData?.listing_address || "");
+  const [unitNum, setUnitNum] = useState(initialData?.unit_number || "");
+  const [directionsTip, setDirectionsTip] = useState(initialData?.directions_tip || "");
+  const [showExtraLocation, setShowExtraLocation] = useState(
+    !!(initialData?.postal_code || initialData?.unit_number || initialData?.directions_tip)
+  );
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(
+    initialData?.latitude && initialData?.longitude
+      ? { lat: initialData.latitude, lng: initialData.longitude }
+      : null
+  );
 
   const handleLocationPicked = (result: {
     lat: number;
@@ -73,11 +91,16 @@ export default function ListingForm({ availableTags }: { availableTags: Tag[] })
   // Surface server action results as toasts.
   useEffect(() => {
     if (state?.error) {
-      toast({ variant: "destructive", title: "Couldn't create listing", description: state.error });
+      toast({ variant: "destructive", title: "Error", description: state.error });
     } else if (state?.success) {
-      toast({ variant: "success", title: "Listing created", description: "Your listing was created successfully." });
+      const msg = initialData ? "Your listing was updated successfully." : "Your listing was created successfully.";
+      toast({ variant: "success", title: initialData ? "Listing updated" : "Listing created", description: msg });
+      if (initialData) {
+        router.push(`/business-owner/listings/${initialData.id}`);
+        router.refresh();
+      }
     }
-  }, [state, toast]);
+  }, [state, toast, initialData, router]);
 
   // Images go straight from the browser to Storage, and only AFTER the listing
   // exists: the storage policy authorises by the listing id in the object path,
@@ -191,7 +214,7 @@ export default function ListingForm({ availableTags }: { availableTags: Tag[] })
   return (
     <form action={formAction} className="space-y-4">
       <Field label="Listing Name" required>
-        {(f) => <Input {...f} type="text" name="listing_name" required />}
+        {(f) => <Input {...f} type="text" name="listing_name" required defaultValue={initialData?.listing_name || ""} />}
       </Field>
 
       <Field label="Description" description="Aim for 100–200 words.">
@@ -204,6 +227,7 @@ export default function ListingForm({ availableTags }: { availableTags: Tag[] })
             {...f}
             name="listing_description"
             rows={4}
+            defaultValue={initialData?.listing_description || ""}
             placeholder="Describe your business — what makes it special, what do you offer, and who is it for?"
             className="field-sizing-fixed"
           />
@@ -423,7 +447,7 @@ export default function ListingForm({ availableTags }: { availableTags: Tag[] })
       </div>
 
       <Button type="submit" disabled={isPending || isUploading || hoursRangeInvalid} className="w-full mt-4">
-        {isUploading ? "Uploading images..." : isPending ? "Creating..." : "Create Listing"}
+        {isUploading ? "Uploading images..." : isPending ? "Saving..." : initialData ? "Save Changes" : "Create Listing"}
       </Button>
     </form>
   );

@@ -114,6 +114,96 @@ export async function createListing(prevState: ActionState, formData: FormData):
   return { success: true, listingId: newListing.id };
 }
 
+export async function updateListing(
+  listingId: string,
+  prevState: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  const supabase = await createClient();
+
+  // 1. Authenticate user
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) {
+    return { error: "You must be logged in to edit a listing." };
+  }
+
+  // 2. Extract form fields
+  const listing_name = formData.get("listing_name") as string;
+  const listing_description = formData.get("listing_description") as string;
+  const is_24_hours = formData.get("is_24_hours") === "true";
+  const open_time = (formData.get("open_time") as string) || null;
+  const close_time = (formData.get("close_time") as string) || null;
+
+  // Extract address & mapping fields
+  const postal_code = (formData.get("postal_code") as string) || null;
+  const unit_number = (formData.get("unit_number") as string) || null;
+  const directions_tip = (formData.get("directions_tip") as string) || null;
+  const raw_address = (formData.get("listing_address") as string) || "";
+  
+  const latStr = formData.get("latitude") as string;
+  const lngStr = formData.get("longitude") as string;
+  const latitude = latStr ? parseFloat(latStr) : null;
+  const longitude = lngStr ? parseFloat(lngStr) : null;
+
+  const addressParts = [raw_address, unit_number, postal_code].filter(Boolean);
+  const listing_address = addressParts.join(", ");
+
+  if (!listing_name) {
+    return { error: "Listing name is required." };
+  }
+
+  if (!is_24_hours && (!open_time || !close_time)) {
+    return { error: "Please provide both opening and closing times, or mark as open 24 hours." };
+  }
+  if (!isValidListingHours({ is24h: is_24_hours, open: open_time, close: close_time })) {
+    return { error: "Closing time must be after opening time." };
+  }
+
+  // 3. Update existing listing (with strict owner profile_id check!)
+  const { error } = await supabase
+    .from("listings")
+    .update({
+      listing_name,
+      listing_description,
+      listing_address,
+      is_24_hours,
+      open_time: is_24_hours ? null : open_time,
+      close_time: is_24_hours ? null : close_time,
+      postal_code,
+      latitude,
+      longitude,
+      unit_number,
+      directions_tip,
+    })
+    .eq("id", listingId)
+    .eq("profile_id", user.id);
+
+  if (error) {
+    console.error("Error updating listing:", error);
+    return { error: "Failed to update listing. Please try again." };
+  }
+
+  // 4. Handle Tags (Retake Onboarding pattern: delete existing, insert new selection)
+  const selectedTagIds = formData.getAll("selected_tags") as string[];
+  
+  await supabase.from("listing_tags").delete().eq("listing_id", listingId);
+
+  if (selectedTagIds.length > 0) {
+    const tagInserts = selectedTagIds.map((tagId) => ({
+      listing_id: listingId,
+      tag_id: tagId,
+    }));
+    await supabase.from("listing_tags").insert(tagInserts);
+  }
+
+  // 5. Revalidate caches so changes appear instantly everywhere
+  revalidatePath(`/business-owner/listings/${listingId}`);
+  revalidatePath("/business-owner");
+  revalidatePath("/tourist/explore");
+
+  return { success: true, listingId };
+}
+
 // Records images the browser has already uploaded to Storage. Called after
 // createListing succeeds, so the listing exists and its RLS ownership check can
 // pass. `paths` are object paths within the listing-images bucket, in the order
