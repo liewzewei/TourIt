@@ -39,6 +39,7 @@ test.describe("listing images", () => {
     // --- 1. Owner creates a listing with two images ---
     await page.goto("/business-owner/listings");
     await page.getByLabel("Listing Name").fill(LISTING_NAME);
+    await page.getByLabel("Street Address, City & Country").fill("1600 Pennsylvania Avenue NW, Washington, DC 20500, United States");
     // Open 24 hours so no opening/closing times are required.
     await page.getByLabel("Open 24 hours").check();
     
