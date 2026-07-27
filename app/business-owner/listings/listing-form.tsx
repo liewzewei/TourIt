@@ -1,8 +1,9 @@
 "use client";
 
 import { useActionState, useEffect, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import { createListing, saveListingImages, type ActionState } from "./action";
-import { X } from "lucide-react";
+import { X, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -19,6 +20,10 @@ import {
   validateImageFiles,
 } from "@/lib/listing-images";
 
+const LocationPicker = dynamic(() => import("@/components/location-picker"), {
+  ssr: false,
+});
+
 // A picked file paired with its preview URL. Kept together in one array so the
 // two can never drift out of sync, and so revoking on removal is trivial.
 type SelectedImage = { file: File; previewUrl: string };
@@ -33,52 +38,22 @@ export default function ListingForm({ availableTags }: { availableTags: Tag[] })
   const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
 
-  // --- Global Address & OpenStreetMap Lookup State ---
-  const [searchQuery, setSearchQuery] = useState("");
+  // --- Location & Address State ---
   const [postalCode, setPostalCode] = useState("");
   const [addressLine, setAddressLine] = useState("");
   const [unitNum, setUnitNum] = useState("");
   const [directionsTip, setDirectionsTip] = useState("");
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
-  const [isLookingUp, setIsLookingUp] = useState(false);
 
-  const handleGlobalLookup = async () => {
-    if (!searchQuery.trim()) {
-      toast({ variant: "destructive", title: "Empty Search", description: "Please enter a street address, landmark, or city to search." });
-      return;
-    }
-    setIsLookingUp(true);
-    try {
-      // OpenStreetMap Nominatim API - Free, Global, No API Key required
-      const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&addressdetails=1&limit=1`,
-        { headers: { "Accept-Language": "en" } }
-      );
-      const data = await res.json();
-      
-      if (data && data.length > 0) {
-        const match = data[0];
-        const addr = match.address || {};
-        
-        // Extract street + city/town + country cleanly
-        const streetPart = [addr.road || addr.pedestrian, addr.house_number].filter(Boolean).join(" ");
-        const cityPart = addr.city || addr.town || addr.village || addr.suburb || "";
-        const statePart = addr.state || addr.country || "";
-        const cleanAddress = [match.name !== streetPart ? match.name : null, streetPart, cityPart, statePart].filter(Boolean).join(", ");
-        
-        setAddressLine(cleanAddress || match.display_name);
-        if (addr.postcode) setPostalCode(addr.postcode);
-        setCoords({ lat: parseFloat(match.lat), lng: parseFloat(match.lon) });
-        
-        toast({ variant: "success", title: "Location Found!", description: "Address and coordinates retrieved from OpenStreetMap." });
-      } else {
-        toast({ variant: "destructive", title: "Not Found", description: "Could not find this location globally. Try adding a city or country name." });
-      }
-    } catch (err) {
-      toast({ variant: "destructive", title: "Lookup Failed", description: "Could not connect to map service. Please check your network." });
-    } finally {
-      setIsLookingUp(false);
-    }
+  const handleLocationPicked = (result: {
+    lat: number;
+    lng: number;
+    address?: string;
+    postalCode?: string;
+  }) => {
+    setCoords({ lat: result.lat, lng: result.lng });
+    if (result.address) setAddressLine(result.address);
+    if (result.postalCode) setPostalCode(result.postalCode);
   };
 
   // Object URLs must be released manually or they leak for the page's lifetime.
@@ -234,66 +209,41 @@ export default function ListingForm({ availableTags }: { availableTags: Tag[] })
         )}
       </Field>
 
-      {/* --- GLOBAL STRUCTURED ADDRESS & MAP LOOKUP --- */}
+      {/* --- LOCATION & MAP --- */}
       <div className="space-y-4 rounded-lg border p-4 bg-muted/20">
-        <h3 className="text-sm font-semibold">Global Location & Map Details</h3>
-        
-        {/* Hidden inputs to pass coordinates to FormData server action */}
-        <input type="hidden" name="latitude" value={coords?.lat || ""} />
-        <input type="hidden" name="longitude" value={coords?.lng || ""} />
+        <h3 className="text-sm font-semibold">Location</h3>
 
-        <div className="flex gap-2 items-end">
-          <div className="flex-grow">
-            <Field label="Search Location Globally" description="Search by landmark, street address, or city (e.g. 'Shibuya Crossing, Tokyo' or 'Bugis Junction, Singapore')">
-              {() => (
-                <Input
-                  type="text"
-                  placeholder="e.g. Eiffel Tower, Paris or 1600 Pennsylvania Ave, Washington DC"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      handleGlobalLookup();
-                    }
-                  }}
-                />
-              )}
-            </Field>
-          </div>
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={handleGlobalLookup}
-            disabled={isLookingUp || !searchQuery.trim()}
-            className="mb-0.5"
-          >
-            {isLookingUp ? "Searching..." : "Search Map"}
-          </Button>
-        </div>
+        {/* Hidden inputs for lat/lng */}
+        <input type="hidden" name="latitude" value={coords?.lat ?? ""} />
+        <input type="hidden" name="longitude" value={coords?.lng ?? ""} />
 
+        {/* Interactive Map with search */}
+        <LocationPicker coords={coords} onLocationSelect={handleLocationPicked} />
+
+        {/* Address fields — auto-filled by map, but editable */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="md:col-span-2">
             <Field label="Street Address, City & Country" required>
-              {() => (
+              {(f) => (
                 <Input
+                  {...f}
                   type="text"
                   name="listing_address"
                   required
-                  placeholder="e.g. 5 Avenue Anatole France, 75007 Paris, France"
+                  placeholder="Auto-filled when you drop a pin, or type manually"
                   value={addressLine}
                   onChange={(e) => setAddressLine(e.target.value)}
                 />
               )}
             </Field>
           </div>
-
-          <Field label="Postal / Zip Code (Optional)" description="Any international format">
-            {() => (
+          <Field label="Postal / Zip Code" description="Optional">
+            {(f) => (
               <Input
+                {...f}
                 type="text"
                 name="postal_code"
-                placeholder="e.g. 75007 or SW1A 1AA"
+                placeholder="e.g. 75007"
                 value={postalCode}
                 onChange={(e) => setPostalCode(e.target.value)}
               />
@@ -301,25 +251,27 @@ export default function ListingForm({ availableTags }: { availableTags: Tag[] })
           </Field>
         </div>
 
+        {/* Optional details — compact row */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Field label="Unit / Floor Number (Optional)" description="e.g. #01-15 or Level 3, Suite B">
-            {() => (
+          <Field label="Unit / Floor (Optional)">
+            {(f) => (
               <Input
+                {...f}
                 type="text"
                 name="unit_number"
-                placeholder="e.g. Suite 402 or Floor 2"
+                placeholder="e.g. #01-15 or Suite 402"
                 value={unitNum}
                 onChange={(e) => setUnitNum(e.target.value)}
               />
             )}
           </Field>
-
-          <Field label="How to Get There (Optional)" description="Help tourists find your entrance">
-            {() => (
+          <Field label="How to Get There (Optional)">
+            {(f) => (
               <Input
+                {...f}
                 type="text"
                 name="directions_tip"
-                placeholder="e.g. Enter via the North Gate atrium"
+                placeholder="e.g. Enter via the North Gate"
                 value={directionsTip}
                 onChange={(e) => setDirectionsTip(e.target.value)}
               />
@@ -327,9 +279,11 @@ export default function ListingForm({ availableTags }: { availableTags: Tag[] })
           </Field>
         </div>
 
+        {/* Coordinates confirmation */}
         {coords && (
           <p className="text-xs text-emerald-600 font-medium flex items-center gap-1">
-            <span>✓ Global coordinates locked:</span>
+            <Check className="h-3.5 w-3.5" />
+            <span>Coordinates locked:</span>
             <span className="font-mono">({coords.lat.toFixed(5)}, {coords.lng.toFixed(5)})</span>
           </p>
         )}

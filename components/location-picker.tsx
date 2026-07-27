@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { renderToString } from "react-dom/server";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search } from "lucide-react";
+import { MapPin, Search } from "lucide-react";
 
 type LocationPickerProps = {
   /** Current coordinates (if any) — used to place the initial marker */
@@ -35,6 +36,28 @@ export default function LocationPicker({
     onLocationSelectRef.current = onLocationSelect;
   }, [onLocationSelect]);
 
+  // Create a custom Leaflet divIcon using MapPin teardrop shape with transparent center hole
+  const getMarkerIcon = () => {
+    const pinHtml = renderToString(
+      <div style={{ filter: "drop-shadow(0px 3px 5px rgba(0,0,0,0.35))", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#b91c1c" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <path
+            d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z M12 7a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z"
+            fill="#ef4444"
+            fillRule="evenodd"
+          />
+        </svg>
+      </div>
+    );
+    return L.divIcon({
+      className: "custom-location-pin",
+      html: pinHtml,
+      iconSize: [36, 36],
+      iconAnchor: [18, 36],
+      popupAnchor: [0, -36],
+    });
+  };
+
   const handleMapClick = async (e: L.LeafletMouseEvent) => {
     const { lat, lng } = e.latlng;
     if (!mapRef.current) return;
@@ -43,7 +66,7 @@ export default function LocationPicker({
     if (markerRef.current) {
       markerRef.current.setLatLng([lat, lng]);
     } else {
-      markerRef.current = L.marker([lat, lng]).addTo(mapRef.current);
+      markerRef.current = L.marker([lat, lng], { icon: getMarkerIcon() }).addTo(mapRef.current);
     }
     markerRef.current.bindPopup("Loading address...").openPopup();
 
@@ -110,7 +133,7 @@ export default function LocationPicker({
         if (markerRef.current) {
           markerRef.current.setLatLng([lat, lng]);
         } else {
-          markerRef.current = L.marker([lat, lng]).addTo(mapRef.current);
+          markerRef.current = L.marker([lat, lng], { icon: getMarkerIcon() }).addTo(mapRef.current);
         }
 
         const addr = match.address || {};
@@ -184,7 +207,7 @@ export default function LocationPicker({
     if (markerRef.current) {
       markerRef.current.setLatLng([coords.lat, coords.lng]);
     } else {
-      markerRef.current = L.marker([coords.lat, coords.lng]).addTo(
+      markerRef.current = L.marker([coords.lat, coords.lng], { icon: getMarkerIcon() }).addTo(
         mapRef.current
       );
     }
