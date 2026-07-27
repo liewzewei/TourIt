@@ -71,6 +71,11 @@ export async function createListing(prevState: ActionState, formData: FormData):
       is_24_hours,
       open_time: is_24_hours ? null : open_time,
       close_time: is_24_hours ? null : close_time,
+      postal_code,
+      unit_number,
+      directions_tip,
+      latitude,
+      longitude,
     })
     .select("id") // Ensure we get the ID back
     .single();
