@@ -255,3 +255,63 @@ export async function saveListingImages(
 
   return { success: true };
 }
+
+export async function deleteListing(
+  listingId: string,
+): Promise<{ error?: string; success?: boolean }> {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+  if (authError || !user) {
+    return { error: "You must be logged in to delete a listing." };
+  }
+
+  if (!UUID_RE.test(listingId)) {
+    return { error: "Invalid listing." };
+  }
+
+  // Verify ownership before proceeding
+  const { data: listing, error: fetchError } = await supabase
+    .from("listings")
+    .select("id, profile_id")
+    .eq("id", listingId)
+    .eq("profile_id", user.id)
+    .single();
+
+  if (fetchError || !listing) {
+    return { error: "Listing not found or you don't have permission to delete it." };
+  }
+
+  // listing_tags, itinerary_listings, listing_images, and listing_views all
+  // cascade automatically via ON DELETE CASCADE foreign keys.
+
+  // Delete listing images from Storage bucket.
+  // All images sit under `{listingId}/` in the listing-images bucket.
+  const { data: files } = await supabase.storage
+    .from("listing-images")
+    .list(listingId);
+  if (files && files.length > 0) {
+    const filePaths = files.map((f) => `${listingId}/${f.name}`);
+    await supabase.storage.from("listing-images").remove(filePaths);
+  }
+
+  // Delete the listing itself
+  const { error } = await supabase
+    .from("listings")
+    .delete()
+    .eq("id", listingId)
+    .eq("profile_id", user.id);
+
+  if (error) {
+    console.error("Error deleting listing:", error);
+    return { error: "Failed to delete listing. Please try again." };
+  }
+
+  revalidatePath("/business-owner");
+  revalidatePath("/tourist/explore");
+
+  return { success: true };
+}

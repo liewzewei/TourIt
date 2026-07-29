@@ -4,8 +4,8 @@
 import { useActionState, useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
-import { createListing, updateListing, saveListingImages, type ActionState } from "./action";
-import { X, Check } from "lucide-react";
+import { createListing, updateListing, deleteListing, saveListingImages, type ActionState } from "./action";
+import { X, Check, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import TimeRangeField from "@/components/ui/time-range-field";
 import TagMultiSelect, { type Tag } from "@/components/tag-multi-select";
 import { useToast } from "@/context/toast-context";
+import { useConfirm } from "@/context/confirm-context";
 import { isValidTimeRange } from "@/lib/time-constraints";
 import createClient from "@/lib/supabase/client";
 import {
@@ -38,6 +39,8 @@ export default function ListingForm({
   initialData?: any;
 }) {
   const router = useRouter();
+  const { confirm } = useConfirm();
+  const [isDeleting, setIsDeleting] = useState(false);
   const actionToRun = initialData ? updateListing.bind(null, initialData.id) : createListing;
   const [state, formAction, isPending] = useActionState<ActionState, FormData>(actionToRun, null);
   const [selectedTags, setSelectedTags] = useState<Tag[]>(
@@ -446,9 +449,45 @@ export default function ListingForm({
         )}
       </div>
 
-      <Button type="submit" disabled={isPending || isUploading || hoursRangeInvalid} className="w-full mt-4">
+      <Button type="submit" disabled={isPending || isUploading || hoursRangeInvalid || isDeleting} className="w-full mt-4">
         {isUploading ? "Uploading images..." : isPending ? "Saving..." : initialData ? "Save Changes" : "Create Listing"}
       </Button>
+
+      {initialData && (
+        <Button
+          type="button"
+          variant="destructive"
+          disabled={isPending || isUploading || isDeleting}
+          className="w-full mt-2"
+          onClick={async () => {
+            const confirmed = await confirm({
+              title: "Delete listing?",
+              description: `Are you sure you want to delete "${initialData.listing_name}"? This action cannot be undone.`,
+              confirmText: "Delete",
+              variant: "destructive",
+            });
+            if (!confirmed) return;
+
+            setIsDeleting(true);
+            try {
+              const result = await deleteListing(initialData.id);
+              if (result.error) {
+                toast({ variant: "destructive", title: "Delete failed", description: result.error });
+                setIsDeleting(false);
+              } else {
+                toast({ title: "Listing deleted", description: "Your listing has been permanently removed." });
+                router.push("/business-owner");
+              }
+            } catch {
+              toast({ variant: "destructive", title: "Delete failed", description: "An unexpected error occurred." });
+              setIsDeleting(false);
+            }
+          }}
+        >
+          <Trash2 className="h-4 w-4" />
+          {isDeleting ? "Deleting..." : "Delete Listing"}
+        </Button>
+      )}
     </form>
   );
 } 
