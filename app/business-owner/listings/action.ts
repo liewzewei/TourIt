@@ -285,12 +285,8 @@ export async function deleteListing(
     return { error: "Listing not found or you don't have permission to delete it." };
   }
 
-  // Clean up relations that lack ON DELETE CASCADE:
-  // - listing_tags (no cascade)
-  // - itinerary_listings (no cascade)
-  // listing_images and listing_views have ON DELETE CASCADE and auto-clean.
-  await supabase.from("listing_tags").delete().eq("listing_id", listingId);
-  await supabase.from("itinerary_listings").delete().eq("listing_id", listingId);
+  // listing_tags, itinerary_listings, listing_images, and listing_views all
+  // cascade automatically via ON DELETE CASCADE foreign keys.
 
   // Delete listing images from Storage bucket.
   // All images sit under `{listingId}/` in the listing-images bucket.
