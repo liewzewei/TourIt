@@ -12,6 +12,6 @@ export const config = {
         // image optimizer endpoint: without this exclusion, its requests get
         // caught by the role-home redirect below and 307'd away instead of
         // serving the image, so every next/image render breaks.
-        '/((?!_next/static|_next/image|favicon.ico).*)',
+        '/((?!_next/static|_next/image|icon.png).*)',
     ],
 };
