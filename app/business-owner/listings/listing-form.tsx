@@ -475,7 +475,7 @@ export default function ListingForm({
                 toast({ variant: "destructive", title: "Delete failed", description: result.error });
                 setIsDeleting(false);
               } else {
-                toast({ title: "Listing deleted" });
+                toast({ title: "Listing deleted", description: "Your listing has been permanently removed." });
                 router.push("/business-owner");
               }
             } catch {
