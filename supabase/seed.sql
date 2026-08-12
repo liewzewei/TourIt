@@ -183,3 +183,458 @@ values
   ('30000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000001'),
   ('30000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000003')
 on conflict do nothing;
+
+-- ===========================================================================
+-- 7. ANALYTICS SEED DATA
+--
+-- 12 extra tourist accounts + 45 days of listing views + saves spread across
+-- multiple itineraries. This populates the business-owner Insights dashboard
+-- with realistic data:  stat cards, per-listing table, time-series chart,
+-- and audience-tags panel (which needs ≥10 distinct savers to unlock).
+-- ===========================================================================
+
+-- ── 7a. Extra tourist auth.users ─────────────────────────────────────────────
+-- IDs use the pattern AAAAAAAA-...-00000000000N for easy identification.
+insert into auth.users (
+  instance_id, id, aud, role, email,
+  encrypted_password, email_confirmed_at,
+  raw_app_meta_data, raw_user_meta_data,
+  created_at, updated_at,
+  confirmation_token, recovery_token, email_change_token_new, email_change
+)
+values
+  ('00000000-0000-0000-0000-000000000000', 'aaaaaaaa-aaaa-aaaa-aaaa-000000000002',
+   'authenticated', 'authenticated', 'tourist02@tourit.local',
+   crypt('password123', gen_salt('bf')), now(),
+   '{"provider":"email","providers":["email"]}', '{"full_name":"Bella Tan"}',
+   now(), now(), '', '', '', ''),
+  ('00000000-0000-0000-0000-000000000000', 'aaaaaaaa-aaaa-aaaa-aaaa-000000000003',
+   'authenticated', 'authenticated', 'tourist03@tourit.local',
+   crypt('password123', gen_salt('bf')), now(),
+   '{"provider":"email","providers":["email"]}', '{"full_name":"Carlos Rivera"}',
+   now(), now(), '', '', '', ''),
+  ('00000000-0000-0000-0000-000000000000', 'aaaaaaaa-aaaa-aaaa-aaaa-000000000004',
+   'authenticated', 'authenticated', 'tourist04@tourit.local',
+   crypt('password123', gen_salt('bf')), now(),
+   '{"provider":"email","providers":["email"]}', '{"full_name":"Diana Lim"}',
+   now(), now(), '', '', '', ''),
+  ('00000000-0000-0000-0000-000000000000', 'aaaaaaaa-aaaa-aaaa-aaaa-000000000005',
+   'authenticated', 'authenticated', 'tourist05@tourit.local',
+   crypt('password123', gen_salt('bf')), now(),
+   '{"provider":"email","providers":["email"]}', '{"full_name":"Ethan Goh"}',
+   now(), now(), '', '', '', ''),
+  ('00000000-0000-0000-0000-000000000000', 'aaaaaaaa-aaaa-aaaa-aaaa-000000000006',
+   'authenticated', 'authenticated', 'tourist06@tourit.local',
+   crypt('password123', gen_salt('bf')), now(),
+   '{"provider":"email","providers":["email"]}', '{"full_name":"Fiona Wong"}',
+   now(), now(), '', '', '', ''),
+  ('00000000-0000-0000-0000-000000000000', 'aaaaaaaa-aaaa-aaaa-aaaa-000000000007',
+   'authenticated', 'authenticated', 'tourist07@tourit.local',
+   crypt('password123', gen_salt('bf')), now(),
+   '{"provider":"email","providers":["email"]}', '{"full_name":"George Tan"}',
+   now(), now(), '', '', '', ''),
+  ('00000000-0000-0000-0000-000000000000', 'aaaaaaaa-aaaa-aaaa-aaaa-000000000008',
+   'authenticated', 'authenticated', 'tourist08@tourit.local',
+   crypt('password123', gen_salt('bf')), now(),
+   '{"provider":"email","providers":["email"]}', '{"full_name":"Hannah Lee"}',
+   now(), now(), '', '', '', ''),
+  ('00000000-0000-0000-0000-000000000000', 'aaaaaaaa-aaaa-aaaa-aaaa-000000000009',
+   'authenticated', 'authenticated', 'tourist09@tourit.local',
+   crypt('password123', gen_salt('bf')), now(),
+   '{"provider":"email","providers":["email"]}', '{"full_name":"Ivan Ng"}',
+   now(), now(), '', '', '', ''),
+  ('00000000-0000-0000-0000-000000000000', 'aaaaaaaa-aaaa-aaaa-aaaa-00000000000a',
+   'authenticated', 'authenticated', 'tourist10@tourit.local',
+   crypt('password123', gen_salt('bf')), now(),
+   '{"provider":"email","providers":["email"]}', '{"full_name":"Julia Chen"}',
+   now(), now(), '', '', '', ''),
+  ('00000000-0000-0000-0000-000000000000', 'aaaaaaaa-aaaa-aaaa-aaaa-00000000000b',
+   'authenticated', 'authenticated', 'tourist11@tourit.local',
+   crypt('password123', gen_salt('bf')), now(),
+   '{"provider":"email","providers":["email"]}', '{"full_name":"Kevin Ong"}',
+   now(), now(), '', '', '', ''),
+  ('00000000-0000-0000-0000-000000000000', 'aaaaaaaa-aaaa-aaaa-aaaa-00000000000c',
+   'authenticated', 'authenticated', 'tourist12@tourit.local',
+   crypt('password123', gen_salt('bf')), now(),
+   '{"provider":"email","providers":["email"]}', '{"full_name":"Lisa Yeo"}',
+   now(), now(), '', '', '', ''),
+  ('00000000-0000-0000-0000-000000000000', 'aaaaaaaa-aaaa-aaaa-aaaa-00000000000d',
+   'authenticated', 'authenticated', 'tourist13@tourit.local',
+   crypt('password123', gen_salt('bf')), now(),
+   '{"provider":"email","providers":["email"]}', '{"full_name":"Marcus Chua"}',
+   now(), now(), '', '', '', '')
+on conflict (id) do nothing;
+
+insert into auth.identities (
+  id, user_id, provider_id, identity_data, provider,
+  last_sign_in_at, created_at, updated_at
+)
+select
+  gen_random_uuid(), u.id, u.id::text,
+  jsonb_build_object('sub', u.id::text, 'email', u.email, 'email_verified', true),
+  'email', now(), now(), now()
+from auth.users u
+where u.email like 'tourist%@tourit.local'
+  and u.id <> '22222222-2222-2222-2222-222222222222'  -- skip original tourist (already has identity)
+on conflict do nothing;
+
+-- ── 7b. Set all extra tourists as onboarded ──────────────────────────────────
+update public.profiles
+set role = 'tourist', onboarding_completed = true
+where id in (
+  'aaaaaaaa-aaaa-aaaa-aaaa-000000000002',
+  'aaaaaaaa-aaaa-aaaa-aaaa-000000000003',
+  'aaaaaaaa-aaaa-aaaa-aaaa-000000000004',
+  'aaaaaaaa-aaaa-aaaa-aaaa-000000000005',
+  'aaaaaaaa-aaaa-aaaa-aaaa-000000000006',
+  'aaaaaaaa-aaaa-aaaa-aaaa-000000000007',
+  'aaaaaaaa-aaaa-aaaa-aaaa-000000000008',
+  'aaaaaaaa-aaaa-aaaa-aaaa-000000000009',
+  'aaaaaaaa-aaaa-aaaa-aaaa-00000000000a',
+  'aaaaaaaa-aaaa-aaaa-aaaa-00000000000b',
+  'aaaaaaaa-aaaa-aaaa-aaaa-00000000000c',
+  'aaaaaaaa-aaaa-aaaa-aaaa-00000000000d'
+);
+
+-- ── 7c. Tourist tag preferences (diverse mix for audience panel) ─────────────
+-- Each tourist gets 3-5 tags from the 15 available, creating a realistic
+-- distribution for the audience-tags RPC.
+insert into public.tourist_tags (profile_id, tag_id)
+select v.profile_id, t.id
+from (values
+  -- Bella: foodie + culture
+  ('aaaaaaaa-aaaa-aaaa-aaaa-000000000002'::uuid, 'Local Cuisine'),
+  ('aaaaaaaa-aaaa-aaaa-aaaa-000000000002'::uuid, 'Street Food'),
+  ('aaaaaaaa-aaaa-aaaa-aaaa-000000000002'::uuid, 'Café & Coffee'),
+  ('aaaaaaaa-aaaa-aaaa-aaaa-000000000002'::uuid, 'Hidden Gem'),
+  -- Carlos: adventure + nature
+  ('aaaaaaaa-aaaa-aaaa-aaaa-000000000003'::uuid, 'Scenic Views'),
+  ('aaaaaaaa-aaaa-aaaa-aaaa-000000000003'::uuid, 'Wildlife & Nature'),
+  ('aaaaaaaa-aaaa-aaaa-aaaa-000000000003'::uuid, 'Adventure & Sports'),
+  ('aaaaaaaa-aaaa-aaaa-aaaa-000000000003'::uuid, 'Waterfront'),
+  -- Diana: culture + history
+  ('aaaaaaaa-aaaa-aaaa-aaaa-000000000004'::uuid, 'Historical Site'),
+  ('aaaaaaaa-aaaa-aaaa-aaaa-000000000004'::uuid, 'Arts & Culture'),
+  ('aaaaaaaa-aaaa-aaaa-aaaa-000000000004'::uuid, 'Local Craft'),
+  ('aaaaaaaa-aaaa-aaaa-aaaa-000000000004'::uuid, 'Unique Experience'),
+  -- Ethan: family + budget
+  ('aaaaaaaa-aaaa-aaaa-aaaa-000000000005'::uuid, 'Family Friendly'),
+  ('aaaaaaaa-aaaa-aaaa-aaaa-000000000005'::uuid, 'Budget Friendly'),
+  ('aaaaaaaa-aaaa-aaaa-aaaa-000000000005'::uuid, 'Wildlife & Nature'),
+  ('aaaaaaaa-aaaa-aaaa-aaaa-000000000005'::uuid, 'Scenic Views'),
+  -- Fiona: foodie + wellness
+  ('aaaaaaaa-aaaa-aaaa-aaaa-000000000006'::uuid, 'Local Cuisine'),
+  ('aaaaaaaa-aaaa-aaaa-aaaa-000000000006'::uuid, 'Café & Coffee'),
+  ('aaaaaaaa-aaaa-aaaa-aaaa-000000000006'::uuid, 'Wellness & Relaxation'),
+  -- George: culture + food
+  ('aaaaaaaa-aaaa-aaaa-aaaa-000000000007'::uuid, 'Historical Site'),
+  ('aaaaaaaa-aaaa-aaaa-aaaa-000000000007'::uuid, 'Local Cuisine'),
+  ('aaaaaaaa-aaaa-aaaa-aaaa-000000000007'::uuid, 'Street Food'),
+  ('aaaaaaaa-aaaa-aaaa-aaaa-000000000007'::uuid, 'Hidden Gem'),
+  -- Hannah: nature + scenic
+  ('aaaaaaaa-aaaa-aaaa-aaaa-000000000008'::uuid, 'Scenic Views'),
+  ('aaaaaaaa-aaaa-aaaa-aaaa-000000000008'::uuid, 'Waterfront'),
+  ('aaaaaaaa-aaaa-aaaa-aaaa-000000000008'::uuid, 'Wildlife & Nature'),
+  ('aaaaaaaa-aaaa-aaaa-aaaa-000000000008'::uuid, 'Family Friendly'),
+  -- Ivan: adventure + unique
+  ('aaaaaaaa-aaaa-aaaa-aaaa-000000000009'::uuid, 'Adventure & Sports'),
+  ('aaaaaaaa-aaaa-aaaa-aaaa-000000000009'::uuid, 'Unique Experience'),
+  ('aaaaaaaa-aaaa-aaaa-aaaa-000000000009'::uuid, 'Hidden Gem'),
+  -- Julia: everything scenic + food
+  ('aaaaaaaa-aaaa-aaaa-aaaa-00000000000a'::uuid, 'Scenic Views'),
+  ('aaaaaaaa-aaaa-aaaa-aaaa-00000000000a'::uuid, 'Local Cuisine'),
+  ('aaaaaaaa-aaaa-aaaa-aaaa-00000000000a'::uuid, 'Waterfront'),
+  ('aaaaaaaa-aaaa-aaaa-aaaa-00000000000a'::uuid, 'Café & Coffee'),
+  ('aaaaaaaa-aaaa-aaaa-aaaa-00000000000a'::uuid, 'Historical Site'),
+  -- Kevin: budget + street food
+  ('aaaaaaaa-aaaa-aaaa-aaaa-00000000000b'::uuid, 'Budget Friendly'),
+  ('aaaaaaaa-aaaa-aaaa-aaaa-00000000000b'::uuid, 'Street Food'),
+  ('aaaaaaaa-aaaa-aaaa-aaaa-00000000000b'::uuid, 'Local Cuisine'),
+  -- Lisa: arts + wellness
+  ('aaaaaaaa-aaaa-aaaa-aaaa-00000000000c'::uuid, 'Arts & Culture'),
+  ('aaaaaaaa-aaaa-aaaa-aaaa-00000000000c'::uuid, 'Wellness & Relaxation'),
+  ('aaaaaaaa-aaaa-aaaa-aaaa-00000000000c'::uuid, 'Café & Coffee'),
+  ('aaaaaaaa-aaaa-aaaa-aaaa-00000000000c'::uuid, 'Hidden Gem'),
+  -- Marcus: broad interests
+  ('aaaaaaaa-aaaa-aaaa-aaaa-00000000000d'::uuid, 'Scenic Views'),
+  ('aaaaaaaa-aaaa-aaaa-aaaa-00000000000d'::uuid, 'Local Cuisine'),
+  ('aaaaaaaa-aaaa-aaaa-aaaa-00000000000d'::uuid, 'Family Friendly'),
+  ('aaaaaaaa-aaaa-aaaa-aaaa-00000000000d'::uuid, 'Budget Friendly'),
+  ('aaaaaaaa-aaaa-aaaa-aaaa-00000000000d'::uuid, 'Unique Experience')
+) as v(profile_id, tag_name)
+join public.tags t on t.tag_name = v.tag_name
+on conflict do nothing;
+
+-- ── 7d. Listing views (45 days of traffic) ───────────────────────────────────
+-- listing_views has REVOKE ALL FROM authenticated, but seed.sql runs as the
+-- postgres superuser so direct inserts are fine.
+--
+-- Strategy: for each (listing, tourist) pair, generate views on a subset of
+-- the last 45 days. Different listings get different "popularity" levels by
+-- controlling which tourists visit and how many days they show up.
+--
+-- All 13 tourists (the original + 12 new).
+-- The tourists array is crossed with dates and filtered to create varied patterns.
+
+insert into public.listing_views (listing_id, viewer_id, viewed_on)
+select listing_id, viewer_id, day::date
+from (
+  -- Marina Bay Sands: very popular — all 13 tourists visit, most days
+  select
+    '10000000-0000-0000-0000-000000000001'::uuid as listing_id,
+    tourist_id as viewer_id,
+    d.day
+  from generate_series(
+    (now() AT TIME ZONE 'Asia/Singapore')::date - 44,
+    (now() AT TIME ZONE 'Asia/Singapore')::date,
+    '1 day'
+  ) as d(day)
+  cross join (values
+    ('22222222-2222-2222-2222-222222222222'::uuid),
+    ('aaaaaaaa-aaaa-aaaa-aaaa-000000000002'::uuid),
+    ('aaaaaaaa-aaaa-aaaa-aaaa-000000000003'::uuid),
+    ('aaaaaaaa-aaaa-aaaa-aaaa-000000000004'::uuid),
+    ('aaaaaaaa-aaaa-aaaa-aaaa-000000000005'::uuid),
+    ('aaaaaaaa-aaaa-aaaa-aaaa-000000000006'::uuid),
+    ('aaaaaaaa-aaaa-aaaa-aaaa-000000000007'::uuid),
+    ('aaaaaaaa-aaaa-aaaa-aaaa-000000000008'::uuid),
+    ('aaaaaaaa-aaaa-aaaa-aaaa-000000000009'::uuid),
+    ('aaaaaaaa-aaaa-aaaa-aaaa-00000000000a'::uuid),
+    ('aaaaaaaa-aaaa-aaaa-aaaa-00000000000b'::uuid),
+    ('aaaaaaaa-aaaa-aaaa-aaaa-00000000000c'::uuid),
+    ('aaaaaaaa-aaaa-aaaa-aaaa-00000000000d'::uuid)
+  ) as tourists(tourist_id)
+  -- Each tourist visits ~60% of days (pseudo-random based on hash)
+  where abs(hashtext(tourist_id::text || d.day::text)) % 10 < 6
+
+  union all
+
+  -- Gardens by the Bay: popular — 10 tourists, ~50% of days
+  select
+    '10000000-0000-0000-0000-000000000003'::uuid,
+    tourist_id,
+    d.day
+  from generate_series(
+    (now() AT TIME ZONE 'Asia/Singapore')::date - 44,
+    (now() AT TIME ZONE 'Asia/Singapore')::date,
+    '1 day'
+  ) as d(day)
+  cross join (values
+    ('22222222-2222-2222-2222-222222222222'::uuid),
+    ('aaaaaaaa-aaaa-aaaa-aaaa-000000000003'::uuid),
+    ('aaaaaaaa-aaaa-aaaa-aaaa-000000000004'::uuid),
+    ('aaaaaaaa-aaaa-aaaa-aaaa-000000000005'::uuid),
+    ('aaaaaaaa-aaaa-aaaa-aaaa-000000000006'::uuid),
+    ('aaaaaaaa-aaaa-aaaa-aaaa-000000000007'::uuid),
+    ('aaaaaaaa-aaaa-aaaa-aaaa-000000000008'::uuid),
+    ('aaaaaaaa-aaaa-aaaa-aaaa-00000000000a'::uuid),
+    ('aaaaaaaa-aaaa-aaaa-aaaa-00000000000b'::uuid),
+    ('aaaaaaaa-aaaa-aaaa-aaaa-00000000000d'::uuid)
+  ) as tourists(tourist_id)
+  where abs(hashtext(tourist_id::text || d.day::text)) % 10 < 5
+
+  union all
+
+  -- Newton Food Centre: moderate — 8 tourists, ~45% of days
+  select
+    '10000000-0000-0000-0000-000000000002'::uuid,
+    tourist_id,
+    d.day
+  from generate_series(
+    (now() AT TIME ZONE 'Asia/Singapore')::date - 44,
+    (now() AT TIME ZONE 'Asia/Singapore')::date,
+    '1 day'
+  ) as d(day)
+  cross join (values
+    ('22222222-2222-2222-2222-222222222222'::uuid),
+    ('aaaaaaaa-aaaa-aaaa-aaaa-000000000002'::uuid),
+    ('aaaaaaaa-aaaa-aaaa-aaaa-000000000006'::uuid),
+    ('aaaaaaaa-aaaa-aaaa-aaaa-000000000007'::uuid),
+    ('aaaaaaaa-aaaa-aaaa-aaaa-00000000000a'::uuid),
+    ('aaaaaaaa-aaaa-aaaa-aaaa-00000000000b'::uuid),
+    ('aaaaaaaa-aaaa-aaaa-aaaa-00000000000c'::uuid),
+    ('aaaaaaaa-aaaa-aaaa-aaaa-00000000000d'::uuid)
+  ) as tourists(tourist_id)
+  where abs(hashtext(tourist_id::text || d.day::text)) % 10 < 4
+
+  union all
+
+  -- National Museum: moderate — 7 tourists, ~40% of days
+  select
+    '10000000-0000-0000-0000-000000000005'::uuid,
+    tourist_id,
+    d.day
+  from generate_series(
+    (now() AT TIME ZONE 'Asia/Singapore')::date - 44,
+    (now() AT TIME ZONE 'Asia/Singapore')::date,
+    '1 day'
+  ) as d(day)
+  cross join (values
+    ('aaaaaaaa-aaaa-aaaa-aaaa-000000000004'::uuid),
+    ('aaaaaaaa-aaaa-aaaa-aaaa-000000000007'::uuid),
+    ('aaaaaaaa-aaaa-aaaa-aaaa-000000000008'::uuid),
+    ('aaaaaaaa-aaaa-aaaa-aaaa-00000000000a'::uuid),
+    ('aaaaaaaa-aaaa-aaaa-aaaa-00000000000b'::uuid),
+    ('aaaaaaaa-aaaa-aaaa-aaaa-00000000000c'::uuid),
+    ('aaaaaaaa-aaaa-aaaa-aaaa-00000000000d'::uuid)
+  ) as tourists(tourist_id)
+  where abs(hashtext(tourist_id::text || d.day::text)) % 10 < 4
+
+  union all
+
+  -- Tiong Bahru Bakery: growing trend — 6 tourists, denser in recent 15 days
+  select
+    '10000000-0000-0000-0000-000000000006'::uuid,
+    tourist_id,
+    d.day
+  from generate_series(
+    (now() AT TIME ZONE 'Asia/Singapore')::date - 44,
+    (now() AT TIME ZONE 'Asia/Singapore')::date,
+    '1 day'
+  ) as d(day)
+  cross join (values
+    ('aaaaaaaa-aaaa-aaaa-aaaa-000000000002'::uuid),
+    ('aaaaaaaa-aaaa-aaaa-aaaa-000000000006'::uuid),
+    ('aaaaaaaa-aaaa-aaaa-aaaa-00000000000a'::uuid),
+    ('aaaaaaaa-aaaa-aaaa-aaaa-00000000000b'::uuid),
+    ('aaaaaaaa-aaaa-aaaa-aaaa-00000000000c'::uuid),
+    ('aaaaaaaa-aaaa-aaaa-aaaa-00000000000d'::uuid)
+  ) as tourists(tourist_id)
+  -- Older days (~25% chance), recent 15 days (~65% chance) = growth trend
+  where (d.day >= (now() AT TIME ZONE 'Asia/Singapore')::date - 14
+         AND abs(hashtext(tourist_id::text || d.day::text)) % 100 < 65)
+     OR (d.day <  (now() AT TIME ZONE 'Asia/Singapore')::date - 14
+         AND abs(hashtext(tourist_id::text || d.day::text)) % 100 < 25)
+
+  union all
+
+  -- Mustafa Centre: low but steady — 5 tourists, ~30% of days
+  select
+    '10000000-0000-0000-0000-000000000004'::uuid,
+    tourist_id,
+    d.day
+  from generate_series(
+    (now() AT TIME ZONE 'Asia/Singapore')::date - 44,
+    (now() AT TIME ZONE 'Asia/Singapore')::date,
+    '1 day'
+  ) as d(day)
+  cross join (values
+    ('aaaaaaaa-aaaa-aaaa-aaaa-000000000005'::uuid),
+    ('aaaaaaaa-aaaa-aaaa-aaaa-000000000009'::uuid),
+    ('aaaaaaaa-aaaa-aaaa-aaaa-00000000000b'::uuid),
+    ('aaaaaaaa-aaaa-aaaa-aaaa-00000000000c'::uuid),
+    ('aaaaaaaa-aaaa-aaaa-aaaa-00000000000d'::uuid)
+  ) as tourists(tourist_id)
+  where abs(hashtext(tourist_id::text || d.day::text)) % 10 < 3
+) as views_data
+on conflict do nothing;
+
+-- ── 7e. Itineraries for each tourist (one per tourist) ───────────────────────
+insert into public.itineraries (id, profile_id, itinerary_name)
+values
+  ('30000000-0000-0000-0000-000000000002', 'aaaaaaaa-aaaa-aaaa-aaaa-000000000002', 'Bella''s Foodie Tour'),
+  ('30000000-0000-0000-0000-000000000003', 'aaaaaaaa-aaaa-aaaa-aaaa-000000000003', 'Carlos''s Adventure'),
+  ('30000000-0000-0000-0000-000000000004', 'aaaaaaaa-aaaa-aaaa-aaaa-000000000004', 'Diana''s Culture Walk'),
+  ('30000000-0000-0000-0000-000000000005', 'aaaaaaaa-aaaa-aaaa-aaaa-000000000005', 'Family Fun Day'),
+  ('30000000-0000-0000-0000-000000000006', 'aaaaaaaa-aaaa-aaaa-aaaa-000000000006', 'Fiona''s Favourites'),
+  ('30000000-0000-0000-0000-000000000007', 'aaaaaaaa-aaaa-aaaa-aaaa-000000000007', 'George''s History Trail'),
+  ('30000000-0000-0000-0000-000000000008', 'aaaaaaaa-aaaa-aaaa-aaaa-000000000008', 'Hannah''s Nature Day'),
+  ('30000000-0000-0000-0000-000000000009', 'aaaaaaaa-aaaa-aaaa-aaaa-000000000009', 'Ivan''s Hidden Gems'),
+  ('30000000-0000-0000-0000-00000000000a', 'aaaaaaaa-aaaa-aaaa-aaaa-00000000000a', 'Julia''s Best of SG'),
+  ('30000000-0000-0000-0000-00000000000b', 'aaaaaaaa-aaaa-aaaa-aaaa-00000000000b', 'Kevin''s Budget Trip'),
+  ('30000000-0000-0000-0000-00000000000c', 'aaaaaaaa-aaaa-aaaa-aaaa-00000000000c', 'Lisa''s Art & Chill'),
+  ('30000000-0000-0000-0000-00000000000d', 'aaaaaaaa-aaaa-aaaa-aaaa-00000000000d', 'Marcus''s Highlights')
+on conflict (id) do nothing;
+
+-- ── 7f. Saves (itinerary_listings with backdated created_at) ─────────────────
+-- Each tourist saves 2-4 listings to their itinerary. Timestamps are spread
+-- over the last 40 days so the saves time-series shows realistic patterns.
+-- The created_at column defaults to now(), so we override it via explicit value.
+insert into public.itinerary_listings (itinerary_id, listing_id, created_at)
+values
+  -- Bella saves food spots (days -38, -25)
+  ('30000000-0000-0000-0000-000000000002', '10000000-0000-0000-0000-000000000002',
+   now() - interval '38 days'),
+  ('30000000-0000-0000-0000-000000000002', '10000000-0000-0000-0000-000000000006',
+   now() - interval '25 days'),
+
+  -- Carlos saves nature + views (days -42, -30, -12)
+  ('30000000-0000-0000-0000-000000000003', '10000000-0000-0000-0000-000000000001',
+   now() - interval '42 days'),
+  ('30000000-0000-0000-0000-000000000003', '10000000-0000-0000-0000-000000000003',
+   now() - interval '30 days'),
+  ('30000000-0000-0000-0000-000000000003', '10000000-0000-0000-0000-000000000006',
+   now() - interval '12 days'),
+
+  -- Diana saves culture spots (days -35, -20, -8)
+  ('30000000-0000-0000-0000-000000000004', '10000000-0000-0000-0000-000000000005',
+   now() - interval '35 days'),
+  ('30000000-0000-0000-0000-000000000004', '10000000-0000-0000-0000-000000000001',
+   now() - interval '20 days'),
+  ('30000000-0000-0000-0000-000000000004', '10000000-0000-0000-0000-000000000003',
+   now() - interval '8 days'),
+
+  -- Ethan saves family-friendly (days -33, -18)
+  ('30000000-0000-0000-0000-000000000005', '10000000-0000-0000-0000-000000000003',
+   now() - interval '33 days'),
+  ('30000000-0000-0000-0000-000000000005', '10000000-0000-0000-0000-000000000004',
+   now() - interval '18 days'),
+
+  -- Fiona saves food + bakery (days -28, -15, -3)
+  ('30000000-0000-0000-0000-000000000006', '10000000-0000-0000-0000-000000000002',
+   now() - interval '28 days'),
+  ('30000000-0000-0000-0000-000000000006', '10000000-0000-0000-0000-000000000006',
+   now() - interval '15 days'),
+  ('30000000-0000-0000-0000-000000000006', '10000000-0000-0000-0000-000000000001',
+   now() - interval '3 days'),
+
+  -- George saves culture + food (days -26, -14, -5)
+  ('30000000-0000-0000-0000-000000000007', '10000000-0000-0000-0000-000000000005',
+   now() - interval '26 days'),
+  ('30000000-0000-0000-0000-000000000007', '10000000-0000-0000-0000-000000000002',
+   now() - interval '14 days'),
+  ('30000000-0000-0000-0000-000000000007', '10000000-0000-0000-0000-000000000001',
+   now() - interval '5 days'),
+
+  -- Hannah saves nature (days -22, -10)
+  ('30000000-0000-0000-0000-000000000008', '10000000-0000-0000-0000-000000000001',
+   now() - interval '22 days'),
+  ('30000000-0000-0000-0000-000000000008', '10000000-0000-0000-0000-000000000003',
+   now() - interval '10 days'),
+
+  -- Ivan saves unique spots (days -19, -7)
+  ('30000000-0000-0000-0000-000000000009', '10000000-0000-0000-0000-000000000004',
+   now() - interval '19 days'),
+  ('30000000-0000-0000-0000-000000000009', '10000000-0000-0000-0000-000000000006',
+   now() - interval '7 days'),
+
+  -- Julia saves broad mix (days -31, -17, -6, -1)
+  ('30000000-0000-0000-0000-00000000000a', '10000000-0000-0000-0000-000000000001',
+   now() - interval '31 days'),
+  ('30000000-0000-0000-0000-00000000000a', '10000000-0000-0000-0000-000000000002',
+   now() - interval '17 days'),
+  ('30000000-0000-0000-0000-00000000000a', '10000000-0000-0000-0000-000000000003',
+   now() - interval '6 days'),
+  ('30000000-0000-0000-0000-00000000000a', '10000000-0000-0000-0000-000000000006',
+   now() - interval '1 day'),
+
+  -- Kevin saves budget spots (days -24, -11)
+  ('30000000-0000-0000-0000-00000000000b', '10000000-0000-0000-0000-000000000004',
+   now() - interval '24 days'),
+  ('30000000-0000-0000-0000-00000000000b', '10000000-0000-0000-0000-000000000002',
+   now() - interval '11 days'),
+
+  -- Lisa saves arts + bakery (days -16, -4)
+  ('30000000-0000-0000-0000-00000000000c', '10000000-0000-0000-0000-000000000005',
+   now() - interval '16 days'),
+  ('30000000-0000-0000-0000-00000000000c', '10000000-0000-0000-0000-000000000006',
+   now() - interval '4 days'),
+
+  -- Marcus saves highlights (days -27, -13, -2)
+  ('30000000-0000-0000-0000-00000000000d', '10000000-0000-0000-0000-000000000001',
+   now() - interval '27 days'),
+  ('30000000-0000-0000-0000-00000000000d', '10000000-0000-0000-0000-000000000003',
+   now() - interval '13 days'),
+  ('30000000-0000-0000-0000-00000000000d', '10000000-0000-0000-0000-000000000005',
+   now() - interval '2 days')
+on conflict do nothing;
