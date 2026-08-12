@@ -61,7 +61,9 @@ TourIt/
 │   │   │   └── listings/[id]/{page.tsx, AddToItineraryButton.tsx}
 │   │   ├── itineraries/{page.tsx, [id]/{page.tsx, generate-actions.ts}}
 │   │   └── quiz/{page.tsx, quiz-client.tsx, action.ts}
-│   ├── business-owner/{page.tsx, listings/{page.tsx, listing-form.tsx, action.ts}}
+│   ├── business-owner/
+│   │   ├── {page.tsx, listings/{page.tsx, listing-form.tsx, action.ts, [id]/{page.tsx, edit/page.tsx}}}
+│   │   └── analytics/{page.tsx, [listingId]/page.tsx, export/route.ts}  # insights dashboard + CSV
 │   └── settings/profile/page.tsx
 ├── components/
 │   ├── nav.tsx, nav-link.tsx              # nav shell + shared active-route link (desktop + mobile)
@@ -70,6 +72,8 @@ TourIt/
 │   ├── tag-multi-select.tsx               # shared tag dropdown (filter bar + listing form)
 │   ├── theme-provider.tsx, theme-controls.tsx  # next-themes wrapper + mode/palette switcher
 │   ├── listing-image-carousel.tsx         # swipeable gallery on the listing detail page
+│   ├── location-picker.tsx, itinerary-day-map.tsx  # Leaflet: owner sets location, tourist day-route map
+│   ├── analytics/                         # stat cards, listing table, trend, audience, AI insight, export link
 │   └── ui/                                # primitives: button, input, textarea, label, field,
 │                                          #   popover, calendar, date-field, time-field, time-range-field,
 │                                          #   + toast, alert-dialog, carousel
@@ -84,6 +88,7 @@ TourIt/
 │   ├── explore-params.ts                  # explore-feed URL params
 │   ├── itinerary-overlap.ts               # time-overlap validation
 │   ├── listing-images.ts                  # image limits/validation + public URL builder
+│   ├── analytics.ts, analytics-params.ts  # stat math (deltas, save rate) + period parsing
 │   ├── time-constraints.ts                # operating-hours validation (mirrors the DB trigger)
 │   ├── time-options.ts                    # time-picker option generation + 12h label formatting
 │   ├── palettes.ts                        # palette list + cookie constant
@@ -112,12 +117,13 @@ Managed through **timestamped SQL migrations** in `supabase/migrations/`, applie
 |---|---|---|
 | `users` / `profiles` | account mirror + role/onboarding status | auth triggers on signup |
 | `tags` | shared interest/category vocabulary (15, seeded by migration) | migration |
-| `listings` | business attractions (name, description, address, hours, 24h flag) | business owners |
+| `listings` | business attractions (name, description, address, hours, 24h flag, `latitude`/`longitude`) | business owners |
 | `listing_tags` | M:M — a listing's tags | business owners |
 | `listing_images` | a listing's photos (storage path + `display_order`; index 0 is the cover) | business owners |
+| `listing_views` | one row per unique (listing, viewer, day) — backs the analytics dashboard; RLS default-deny, read only via DEFINER RPCs | `log_listing_view` RPC |
 | `tourist_tags` | M:M — a tourist's quiz-selected tags | tourists |
 | `itineraries` | named trip plans | tourists |
-| `itinerary_listings` | M:M — listings scheduled into an itinerary | tourists |
+| `itinerary_listings` | M:M — listings scheduled into an itinerary (`created_at` = "save" time for analytics) | tourists |
 
 ```
 profiles ──┬── listings ──┬── listing_tags ──── tags
@@ -147,6 +153,16 @@ Policies restrict users to their own `profiles`, `itineraries`, and `tourist_tag
 ### Recommendation engine
 
 The `recommend_listings` Postgres RPC ([migration](../supabase/migrations/20260628130000_recommend_listings_filters.sql)) ranks the feed by **TF-IDF weighted cosine similarity** between a tourist's tags and each listing's tags: it computes IDF across the whole corpus, scores each listing, supports optional tag/opening-hours filters, and returns paginated results with a windowed `total_count`. Listings with no tag match still appear (score 0), ordered after the matches. It also returns each listing's `preview_image_path` (first image by `display_order`, else `NULL`) so the explore feed can render covers without a second query.
+
+### Analytics (owner-facing)
+
+Views are logged one row per unique `(listing, viewer, day)` in `listing_views` (day = Asia/Singapore, so an owner's calendar and the charts agree). "Saves" are itinerary adds, timestamped via `itinerary_listings.created_at`.
+
+Three **SECURITY DEFINER** RPCs power the dashboard by reading across the RLS boundary but are self-scoped to `listings.profile_id = auth.uid()`, return **only aggregate counts** (never a `viewer_id`), and pin `search_path`. `get_owner_listing_stats` (per-listing totals + previous-window deltas), `get_owner_views_timeseries` (zero-filled daily series), and `get_owner_audience_tags` (top saver tags, suppressed below a k=10 floor). CSV export runs the same stats through `app/business-owner/analytics/export/route.ts`.
+
+### Maps
+
+Owners pin a listing's location with a Leaflet map ([`location-picker.tsx`](../components/location-picker.tsx)), writing `listings.latitude`/`longitude`. Tourists see the day's stops plotted on a route map on the itinerary detail page ([`itinerary-day-map.tsx`](../components/itinerary-day-map.tsx)).
 
 ### Storage: listing images
 
