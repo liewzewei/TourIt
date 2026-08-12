@@ -42,6 +42,7 @@ How TourIt is put together: the rendering model, the project layout, the data mo
 - **Client Components** (`'use client'`) for interactive pages (quiz, itineraries, itinerary detail).
 - **Server Actions** (`'use server'`) for all mutations (role updates, quiz completion, listing creation, AI generation).
 - **Context providers** mounted once in the root layout: `ThemeProvider` (next-themes light/dark/system), `PaletteProvider` (cookie-backed colour palette, via `usePalette()`), `UserProvider` (auth user + profile, via `useUser()`), `ToastProvider` (`useToast()`), and `ConfirmProvider` (`useConfirm()`).
+- **External services.** Supabase provides Postgres, Auth, and **Storage** (listing images); **Google Gemini** powers AI schedule generation and the analytics insight. Interactive maps render **client-side** with Leaflet over OpenStreetMap tiles.
 
 ## Project structure
 
@@ -82,13 +83,14 @@ TourIt/
 │   ├── palette-context.tsx                # PaletteProvider + usePalette (cookie-backed palette axis)
 │   ├── toast-context.tsx                  # ToastProvider + useToast
 │   └── confirm-context.tsx                # ConfirmProvider + promise-based useConfirm
-├── hooks/{useUser.ts, useCoarsePointer.ts, useMounted.ts}
+├── hooks/{useUser.ts, useCoarsePointer.ts, useMounted.ts, useScrolledPast.ts}
 ├── lib/
 │   ├── supabase/{server.ts, client.ts, proxy.ts}
 │   ├── explore-params.ts                  # explore-feed URL params
 │   ├── itinerary-overlap.ts               # time-overlap validation
 │   ├── listing-images.ts                  # image limits/validation + public URL builder
 │   ├── analytics.ts, analytics-params.ts  # stat math (deltas, save rate) + period parsing
+│   ├── chart.ts                           # SVG geometry for the analytics trend chart (DOM-free, unit-tested)
 │   ├── time-constraints.ts                # operating-hours validation (mirrors the DB trigger)
 │   ├── time-options.ts                    # time-picker option generation + 12h label formatting
 │   ├── palettes.ts                        # palette list + cookie constant
@@ -172,7 +174,7 @@ Listing photos live in a **public** Supabase Storage bucket, `listing-images`, c
 - **Bucket limits (server-enforced):** 5 MB per file, `image/jpeg` and `image/png` only. `lib/listing-images.ts` mirrors these client-side for fast feedback, but the bucket is the real boundary: a direct API upload that skips the form is still rejected (413 / 415).
 - **Access control:** public read — files are served from `/storage/v1/object/public/...`, are CDN-cacheable, and need no policy. Writes are owner-only: `INSERT`/`DELETE` policies on `storage.objects` require the listing named in the first path segment to belong to `auth.uid()`, the same ownership-via-parent shape used by `listing_tags`.
 - **Upload path:** the browser uploads **directly** to Storage using the user's JWT, then a server action records the resulting paths in `listing_images`. File bytes never travel through a server action, which Next caps at 1 MB by default.
-- **Rendering:** images are resized and converted to WebP by the **Next.js image optimizer** (`next/image` + `images.remotePatterns`), *not* Supabase's image transformation API — that API is Pro-plan only and billed per origin image. Two settings make this work: `_next/image` is excluded from the `proxy.ts` matcher (otherwise the role-home redirect swallows optimizer requests), and `images.dangerouslyAllowLocalIP` is enabled **in development only**, because Next 16 refuses to optimize loopback sources and local dev serves Storage from `127.0.0.1:54321`.
+- **Rendering:** images are resized and converted to WebP by the **Next.js image optimiser** (`next/image` + `images.remotePatterns`), *not* Supabase's image transformation API — that API is Pro-plan only and billed per origin image. Two settings make this work: `_next/image` is excluded from the `proxy.ts` matcher (otherwise the role-home redirect swallows optimiser requests), and `images.dangerouslyAllowLocalIP` is enabled **in development only**, because Next 16 refuses to optimise loopback sources and local dev serves Storage from `127.0.0.1:54321`.
 - **Known limitation:** deleting a listing cascades its `listing_images` rows but not the bucket files. Orphaned objects are tolerated until an edit/delete flow removes them explicitly (`e2e/supabase-admin.ts` does this for test data).
 
 ## Routing & middleware
@@ -192,15 +194,15 @@ Role homes (`constants/common.ts`): tourist → `/tourist`, business owner → `
 
 ## User flows
 
-**New tourist:** login → `/onboarding` (Tourist) → `/tourist/quiz` (swipe tags) → `/tourist/explore` (ranked feed) → listing detail → *Add to Itinerary* (date/time + overlap validation) → `/tourist/itineraries/:id` → *Generate Schedule* (AI fills unscheduled stops).
+**New tourist:** login → `/onboarding` (Tourist) → `/tourist/quiz` (swipe tags) → `/tourist/explore` (ranked feed with cover photos) → listing detail (photo gallery, hours, tags) → *Add to Itinerary* (date/time + overlap validation) → `/tourist/itineraries/:id` (per-day schedule + map) → *Generate Schedule* (AI fills unscheduled stops).
 
-**New business owner:** login → `/onboarding` (Business Owner) → `/business-owner` dashboard → `/business-owner/listings` (create listing with tags + hours).
+**New business owner:** login → `/onboarding` (Business Owner) → `/business-owner` dashboard → `/business-owner/listings` (create listing with tags, hours, photos, and a map location) → `/business-owner/analytics` (track views, saves, and audience).
 
 **Returning user:** login → callback → `/` → middleware redirects to role home.
 
 ## Engineering practices
 
-- **Standardized feedback UI.** Success/error messages go through one Radix-based toast system (`useToast()`), and every destructive confirmation (delete itinerary, remove activity) goes through one reusable, promise-based `useConfirm()` dialog (`context/confirm-context.tsx` + `components/ui/alert-dialog.tsx`) — no ad-hoc `window.confirm`/`alert`.
+- **Standardised feedback UI.** Success/error messages go through one Radix-based toast system (`useToast()`), and every destructive confirmation (delete itinerary, remove activity) goes through one reusable, promise-based `useConfirm()` dialog (`context/confirm-context.tsx` + `components/ui/alert-dialog.tsx`) — no ad-hoc `window.confirm`/`alert`.
 - **Defense-in-depth validation.** Time/hours rules are checked in the app (`lib/time-constraints.ts`, `lib/itinerary-overlap.ts`) *and* enforced at the database (CHECK constraints + the operating-hours trigger), so direct API writes and the AI scheduler can't bypass them.
 - **Migration-driven schema.** All schema change is timestamped SQL migrations — tested locally with `db reset`, validated from scratch in CI, deployed on merge to `main`.
 - **RLS + GRANT together.** See [Access control](#access-control-rls-and-grants).
